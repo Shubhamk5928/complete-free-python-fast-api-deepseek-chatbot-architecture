@@ -1,0 +1,3522 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full-Stack Chatbot Implementation Plan for invisiblebrowser.in</title>
+
+    <!-- External Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #475569;
+            --accent: #3b82f6;
+            --muted: #f1f5f9;
+            --border: #e2e8f0;
+        }
+        
+        * {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+            color: var(--primary);
+        }
+        
+        .serif-display {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .toc-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            border-right: 1px solid var(--border);
+            z-index: 100;
+            overflow-y: auto;
+            padding: 2rem 0;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+        
+        .section-spacing {
+            padding: 4rem 0;
+        }
+        
+        .citation-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.875rem;
+            vertical-align: super;
+            margin-left: 2px;
+        }
+        
+        .citation-link:hover {
+            text-decoration: underline;
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        
+        .bento-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+        }
+        
+        .tech-badge {
+            display: inline-block;
+            background: var(--muted);
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0.25rem;
+        }
+        
+        .architecture-diagram {
+            background: linear-gradient(45deg, #f8fafc 25%, transparent 25%), 
+                       linear-gradient(-45deg, #f8fafc 25%, transparent 25%), 
+                       linear-gradient(45deg, transparent 75%, #f8fafc 75%), 
+                       linear-gradient(-45deg, transparent 75%, #f8fafc 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 1024px) {
+            .toc-fixed {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .toc-fixed.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .px-8 {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .bento-card {
+                word-wrap: break-word;
+            }
+        }
+    </style>
+  </head>
+
+  <body class="bg-slate-50">
+    <!-- Mobile TOC Toggle -->
+    <button id="tocToggle" class="lg:hidden fixed top-4 left-4 z-50 bg-white p-3 rounded-lg shadow-lg border">
+      <i class="fas fa-bars text-gray-700"></i>
+    </button>
+
+    <!-- Table of Contents -->
+    <nav id="tocNav" class="toc-fixed bg-white shadow-lg">
+      <div class="px-6">
+        <h3 class="serif-display text-lg font-semibold text-gray-900 mb-6">Contents</h3>
+        <ul class="space-y-3 text-sm">
+          <li>
+            <a href="#executive-summary" class="block text-gray-600 hover:text-blue-600 transition-colors">Executive Summary</a>
+          </li>
+          <li>
+            <a href="#system-architecture" class="block text-gray-600 hover:text-blue-600 transition-colors">System Architecture</a>
+          </li>
+          <li>
+            <a href="#question-answering" class="block text-gray-600 hover:text-blue-600 transition-colors">Question Answering Implementation</a>
+          </li>
+          <li>
+            <a href="#conditional-forwarding" class="block text-gray-600 hover:text-blue-600 transition-colors">Conditional Chat Forwarding</a>
+          </li>
+          <li>
+            <a href="#multilingual-support" class="block text-gray-600 hover:text-blue-600 transition-colors">Multilingual Support</a>
+          </li>
+          <li>
+            <a href="#backend-integration" class="block text-gray-600 hover:text-blue-600 transition-colors">Backend Integration</a>
+          </li>
+          <li>
+            <a href="#deployment" class="block text-gray-600 hover:text-blue-600 transition-colors">Deployment & Next Steps</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Hero Section with Bento Layout -->
+      <section class="hero-gradient text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-20"></div>
+        <div class="container mx-auto px-8 py-16 relative z-10">
+          <div class="bento-grid max-w-7xl">
+            <!-- Main Hero Content -->
+            <div class="space-y-8">
+              <div class="space-y-4">
+                <h1 class="serif-display text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight">
+                  <span class="italic">Intelligent</span>
+                  <br>
+                  Chatbot Architecture
+                  <br>
+                  <span class="text-blue-200">for invisiblebrowser.in</span>
+                </h1>
+                <p class="text-base sm:text-xl lg:text-2xl text-blue-100 max-w-3xl leading-relaxed">
+                  A comprehensive, cost-effective implementation plan leveraging free open-source technologies for dynamic question answering, intelligent lead capture, and multilingual support.
+                </p>
+              </div>
+
+              <div class="flex flex-wrap gap-4">
+                <span class="tech-badge bg-white bg-opacity-20 text-white">DeepSeek R1-V2</span>
+                <span class="tech-badge bg-white bg-opacity-20 text-white">MinionAgent</span>
+                <span class="tech-badge bg-white bg-opacity-20 text-white">FastAPI</span>
+                <span class="tech-badge bg-white bg-opacity-20 text-white">Telegram API</span>
+              </div>
+            </div>
+
+            <!-- Key Highlights Card -->
+            <div class="bento-card bg-white bg-opacity-10 backdrop-blur-sm">
+              <h3 class="serif-display text-2xl font-semibold mb-6">Key Implementation Highlights</h3>
+              <div class="space-y-4">
+                <div class="flex items-start space-x-3">
+                  <i class="fas fa-brain text-blue-300 mt-1"></i>
+                  <div>
+                    <h4 class="font-semibold">DeepSeek R1-V2 Integration</h4>
+                    <p class="text-blue-100 text-sm">Free, powerful LLM with multilingual capabilities</p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                  <i class="fas fa-spider text-green-300 mt-1"></i>
+                  <div>
+                    <h4 class="font-semibold">MinionAgent Framework</h4>
+                    <p class="text-blue-100 text-sm">Dynamic web scraping for real-time answers</p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                  <i class="fas fa-forward text-yellow-300 mt-1"></i>
+                  <div>
+                    <h4 class="font-semibold">Intelligent Lead Capture</h4>
+                    <p class="text-blue-100 text-sm">Conditional chat forwarding after 4 messages</p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                  <i class="fas fa-globe text-purple-300 mt-1"></i>
+                  <div>
+                    <h4 class="font-semibold">Multilingual Support</h4>
+                    <p class="text-blue-100 text-sm">Native support for English, Chinese, and more</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Executive Summary -->
+      <section id="executive-summary" class="section-spacing bg-white">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <div class="prose prose-lg max-w-none">
+            <h2 class="serif-display text-4xl font-bold text-gray-900 mb-8">Executive Summary: A Free, Customizable, Code-Based Chatbot</h2>
+
+            <div class="grid lg:grid-cols-3 gap-8 mb-12">
+              <div class="lg:col-span-2 space-y-6">
+                <p class="text-xl text-gray-700 leading-relaxed">
+                  This document outlines a comprehensive, cost-effective, and highly customizable plan for implementing a full-stack chatbot for the early-stage startup,
+                  <code class="bg-slate-100 px-2 py-1 rounded text-sm">invisiblebrowser.in</code>. The proposed solution is tailored for a backend engineer who prefers a code-based approach over off-the-shelf, no-code platforms.
+                </p>
+
+                <p class="text-gray-700">
+                  The entire system is designed to be implemented using free, open-source technologies, eliminating upfront software costs and providing maximum flexibility for future development and scaling. The architecture is modular, separating concerns between the user interface, backend logic, AI processing, and external communication, which facilitates maintainability and independent scaling of components.
+                </p>
+              </div>
+
+              <div class="bg-slate-50 p-6 rounded-lg border">
+                <h3 class="font-semibold text-gray-900 mb-4">Core Technology Stack</h3>
+                <div class="space-y-3">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span class="text-sm">FastAPI Backend Framework</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <span class="text-sm">DeepSeek R1-V2 AI Model</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span class="text-sm">MinionAgent Framework</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-teal-500 rounded-full"></div>
+                    <span class="text-sm">Telegram Bot API</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg mb-8">
+              <h3 class="font-semibold text-blue-900 mb-2">Key Innovation</h3>
+              <p class="text-blue-800">
+                The core of the system leverages a powerful, free AI model for generating intelligent responses based on real-time web and site data. A key feature is its intelligent user engagement tracking, which conditionally forwards chat logs to the business owner via a preferred messaging platform after a set number of interactions, enabling proactive lead capture without requiring user registration.
+              </p>
+            </div>
+
+            <p class="text-gray-700">
+              The system is built with multilingual capabilities at its core, ensuring a broad and inclusive user experience from the outset. This plan provides not only the high-level architectural design but also detailed, step-by-step implementation guidance, including specific libraries, code structures, and integration patterns to be used within the existing backend codebase.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- System Architecture -->
+      <section id="system-architecture" class="section-spacing bg-slate-50">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">System Architecture and Component Overview</h2>
+
+          <div class="prose prose-lg max-w-none mb-12">
+            <p class="text-xl text-gray-700 leading-relaxed">
+              The architecture of the chatbot system is designed to be modular, scalable, and easy to integrate into the existing
+              <code class="bg-slate-100 px-2 py-1 rounded text-sm">invisiblebrowser.in</code> infrastructure. It follows a standard client-server pattern with clear separation between components.
+            </p>
+          </div>
+
+          <!-- Architecture Diagram -->
+          <div class="architecture-diagram p-8 rounded-lg mb-12">
+            <div class="grid md:grid-cols-4 gap-6">
+              <!-- Frontend -->
+              <div class="bg-white p-6 rounded-lg shadow-sm border">
+                <div class="text-center mb-4">
+                  <i class="fas fa-desktop text-3xl text-blue-500 mb-2"></i>
+                  <h3 class="font-semibold text-gray-900">Frontend</h3>
+                  <p class="text-sm text-gray-600">Web-Based Chat Interface</p>
+                </div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span>HTML/CSS/JS</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>AJAX Calls</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                    <span>Responsive Design</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Backend -->
+              <div class="bg-white p-6 rounded-lg shadow-sm border">
+                <div class="text-center mb-4">
+                  <i class="fas fa-server text-3xl text-green-500 mb-2"></i>
+                  <h3 class="font-semibold text-gray-900">Backend</h3>
+                  <p class="text-sm text-gray-600">Python Web Service</p>
+                </div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>FastAPI Framework</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span>RESTful APIs</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                    <span>Session Management</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- AI Engine -->
+              <div class="bg-white p-6 rounded-lg shadow-sm border">
+                <div class="text-center mb-4">
+                  <i class="fas fa-brain text-3xl text-purple-500 mb-2"></i>
+                  <h3 class="font-semibold text-gray-900">AI Engine</h3>
+                  <p class="text-sm text-gray-600">DeepSeek + MinionAgent</p>
+                </div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                    <span>DeepSeek R1-V2</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>MinionAgent</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span>Web Scraping</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Communication -->
+              <div class="bg-white p-6 rounded-lg shadow-sm border">
+                <div class="text-center mb-4">
+                  <i class="fas fa-paper-plane text-3xl text-teal-500 mb-2"></i>
+                  <h3 class="font-semibold text-gray-900">Communication</h3>
+                  <p class="text-sm text-gray-600">WhatsApp/Telegram Integration</p>
+                </div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-teal-500 rounded-full"></span>
+                    <span>Telegram Bot API</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>Message Forwarding</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span>Lead Notification</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-12">
+            <div class="space-y-8">
+              <div>
+                <h3 class="serif-display text-2xl font-semibold text-gray-900 mb-4">Frontend: Web-Based Chat Interface</h3>
+                <p class="text-gray-700 mb-4">
+                  The frontend will be a custom-built, lightweight component that can be easily embedded into any page of the
+                  <code class="bg-slate-100 px-2 py-1 rounded text-sm">invisiblebrowser.in</code> website. It will be developed using standard web technologies: HTML for structure, CSS for styling, and JavaScript for interactivity.
+                </p>
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-2">Key Features:</h4>
+                  <ul class="space-y-1 text-sm text-gray-700">
+                    <li>• Clean, intuitive, and responsive design</li>
+                    <li>• Asynchronous JavaScript (AJAX) calls</li>
+                    <li>• Real-time message display without page reload</li>
+                    <li>• Customizable styling to match existing branding</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <h3 class="serif-display text-2xl font-semibold text-gray-900 mb-4">Backend: Python Web Service</h3>
+                <p class="text-gray-700 mb-4">
+                  The backend will serve as the core of the chatbot system, acting as the central hub that orchestrates all interactions between the frontend, the AI engine, and the external communication services. <strong>FastAPI</strong> is recommended due to its high performance and native support for asynchronous operations.
+                </p>
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-2">Core Responsibilities:</h4>
+                  <ul class="space-y-1 text-sm text-gray-700">
+                    <li>• Authenticating and managing user sessions</li>
+                    <li>• Tracking message counts per session</li>
+                    <li>• Forwarding queries to AI engine</li>
+                    <li>• Triggering conditional forwarding logic</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-8">
+              <div>
+                <h3 class="serif-display text-2xl font-semibold text-gray-900 mb-4">AI Engine: DeepSeek R1-V2 with MinionAgent</h3>
+                <p class="text-gray-700 mb-4">
+                  The AI Engine is the brain of the chatbot, responsible for understanding user queries and generating intelligent, context-aware responses. This will be achieved by combining the power of the <strong>DeepSeek R1-V2</strong> large language model with the autonomous capabilities of the <strong>MinionAgent</strong> framework.
+                </p>
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-2">Key Capabilities:</h4>
+                  <ul class="space-y-1 text-sm text-gray-700">
+                    <li>• Real-time web scraping and data retrieval</li>
+                    <li>• Multilingual support (English, Chinese, etc.)</li>
+                    <li>• Context-aware response generation</li>
+                    <li>• Integration with external tools and services</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <h3 class="serif-display text-2xl font-semibold text-gray-900 mb-4">Communication Layer: WhatsApp/Telegram Integration</h3>
+                <p class="text-gray-700 mb-4">
+                  The communication layer enables conditional forwarding of chat logs to the business owner, facilitating direct engagement with potential leads. <strong>Telegram</strong> offers a far more developer-friendly and cost-effective solution for programmatic messaging.
+                </p>
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-2">Implementation Benefits:</h4>
+                  <ul class="space-y-1 text-sm text-gray-700">
+                    <li>• Free Telegram Bot API with excellent documentation</li>
+                    <li>• Simple setup process with BotFather</li>
+                    <li>• Reliable message delivery and formatting</li>
+                    <li>• No business verification or complex setup required</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Question Answering Implementation -->
+      <section id="question-answering" class="section-spacing bg-white">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">Core Implementation: Answering User Questions</h2>
+
+          <div class="prose prose-lg max-w-none mb-12">
+            <p class="text-xl text-gray-700 leading-relaxed">
+              The foundational capability of the proposed chatbot is its ability to intelligently answer user questions by synthesizing information from both the public web and the specific content of
+              <code class="bg-slate-100 px-2 py-1 rounded text-sm">invisiblebrowser.in</code>.
+            </p>
+          </div>
+
+          <!-- DeepSeek R1-V2 Section -->
+          <div class="mb-16">
+            <div class="grid lg:grid-cols-2 gap-12 items-start">
+              <div class="space-y-6">
+                <h3 class="serif-display text-3xl font-semibold text-gray-900">Recommended Free Model: DeepSeek R1-V2</h3>
+
+                <p class="text-gray-700">
+                  For an early-stage startup operating with limited capital, selecting a high-performance, cost-effective AI model is paramount. The recommended choice is <strong>DeepSeek R1-V2</strong>, an open-weight large language model developed by DeepSeek AI<a href="https://www.byteplus.com/en/topic/416706" class="citation-link">[131]</a>.
+                </p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-blue-900 mb-2">Why DeepSeek R1-V2?</h4>
+                  <ul class="space-y-2 text-blue-800">
+                    <li>• <strong>Free to use</strong> - No licensing fees or per-token charges</li>
+                    <li>• <strong>Strong reasoning capabilities</strong> - Excels at complex, multi-step tasks</li>
+                    <li>• <strong>Multilingual support</strong> - Native proficiency in English and Chinese</li>
+                    <li>• <strong>Efficient architecture</strong> - Lower hardware requirements</li>
+                  </ul>
+                </div>
+
+                <p class="text-gray-700">
+                  Unlike proprietary models from providers like OpenAI or Anthropic, which incur per-token costs that can quickly escalate with user traffic, DeepSeek's open-weight models can be run locally or on low-cost cloud infrastructure, eliminating variable API expenses<a href="https://www.byteplus.com/en/topic/416706" class="citation-link">[131]</a>.
+                </p>
+              </div>
+
+              <div class="bg-slate-50 p-8 rounded-lg border">
+                <img src="https://kimi-img.moonshot.cn/pub/icon/spinner.svg" alt="DeepSeek AI model logo" class="w-full rounded-lg mb-4" size="medium" aspect="square" color="black" style="transparent" query="DeepSeek AI logo" referrerpolicy="no-referrer" />
+                <div class="space-y-3">
+                  <h4 class="font-semibold text-gray-900">Model Specifications</h4>
+                  <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span class="text-gray-600">Type:</span>
+                      <span class="font-medium ml-2">Open-weight LLM</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-600">Cost:</span>
+                      <span class="font-medium ml-2 text-green-600">Free</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-600">Languages:</span>
+                      <span class="font-medium ml-2">English, Chinese +</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-600">Architecture:</span>
+                      <span class="font-medium ml-2">Efficient design</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MinionAgent Section -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Web Scraping with MinionAgent</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8 mb-8">
+              <div class="lg:col-span-2 space-y-6">
+                <p class="text-gray-700">
+                  To fulfill the requirement of answering questions based on both the public web and the
+                  <code class="bg-slate-100 px-2 py-1 rounded text-sm">invisiblebrowser.in</code> website, the chatbot needs a dynamic data retrieval mechanism. The recommended tool is <strong>MinionAgent</strong>, a powerful, open-source AI agent framework designed for browser automation and information retrieval<a href="https://blog.csdn.net/qq_41185868/article/details/148040189" class="citation-link">[133]</a>.
+                </p>
+
+                <div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-green-900 mb-2">Installation</h4>
+                  <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm mb-3">
+                    pip install minion-agent-x
+                  </div>
+                  <p class="text-green-800 text-sm">
+                    The MinionAgent framework is available as a Python package, making it easy to integrate into the existing backend codebase<a href="https://www.xugj520.cn/archives/open-source-ai-agent-framework.html" class="citation-link">[135]</a>.
+                  </p>
+                </div>
+
+                <p class="text-gray-700">
+                  MinionAgent acts as the "hands" of the LLM, allowing it to interact with the live web. When a user asks a question, the chatbot can instruct MinionAgent to navigate to relevant websites, search for information, and extract the necessary data.
+                </p>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Agent Configuration</h4>
+                  <div class="space-y-3 text-sm">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      <span>Model ID: deepseek-r1-v2</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                      <span>Browser Tool Integration</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                      <span>Planning Mechanism</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-teal-500 rounded-full"></span>
+                      <span>MCP Protocol Support</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                  <h5 class="font-semibold text-amber-900 mb-2">Key Benefits</h5>
+                  <ul class="space-y-1 text-sm text-amber-800">
+                    <li>• Autonomous web navigation</li>
+                    <li>• Adaptive to website layout changes</li>
+                    <li>• Real-time data retrieval</li>
+                    <li>• Context-aware information extraction</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Code Example -->
+            <div class="bg-gray-900 rounded-lg p-6 mb-8">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="text-white font-semibold">Integration Example</h4>
+                <span class="text-gray-400 text-sm">Python</span>
+              </div>
+              <pre class="text-green-400 text-sm overflow-x-auto"><code>import asyncio
+from minion_agent import MinionAgent, AgentConfig, AgentFramework
+from dotenv import load_dotenv
+
+load_dotenv()
+
+async def handle_user_query(user_query: str):
+    agent_config = AgentConfig(
+        model_id="deepseek-r1-v2",
+        name="web_researcher",
+        description="An agent that can browse the web to answer questions.",
+        tools=["minion_agent.tools.browser_tool.browser"],
+    )
+    
+    agent = await MinionAgent.create(AgentFramework.SMOLAGENTS, agent_config)
+    scraped_data = await agent.run(user_query)
+    
+    # Pre-process scraped_data and create LLM prompt
+    prompt = f"Based on the following information, answer '{user_query}':\n\n{scraped_data}"
+    
+    return llm_response
+
+# Called from chat API endpoint
+# asyncio.run(handle_user_query("What is the latest news about AI?"))</code></pre>
+            </div>
+          </div>
+
+          <!-- Alternative Implementation: RAG -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Alternative Implementation: RAG with LlamaIndex</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <p class="text-gray-700">
+                  While the MinionAgent approach provides dynamic web scraping, an alternative architectural pattern known as <strong>Retrieval-Augmented Generation (RAG)</strong> offers different trade-offs. A RAG system pre-processes and indexes specific documents into a vector database for faster, more reliable answers.
+                </p>
+
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-indigo-900 mb-2">RAG Pipeline Components</h4>
+                  <ul class="space-y-2 text-indigo-800">
+                    <li>• <strong>Ollama</strong> - Local LLM serving framework<a href="https://www.codewithfaraz.com/python/112/how-to-create-your-own-ai-chatbot-like-deepseek-with-ollama-in-python-flask" class="citation-link">[130]</a>
+                    </li>
+                    <li>• <strong>LlamaIndex</strong> - Data framework for RAG applications</li>
+                    <li>• <strong>Vector Database</strong> - Efficient similarity search</li>
+                    <li>• <strong>Document Processing</strong> - Website content indexing</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-gray-900 rounded-lg p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-white font-semibold">Ollama Setup</h4>
+                    <span class="text-gray-400 text-sm">Bash</span>
+                  </div>
+                  <pre class="text-green-400 text-sm"><code># Install and run DeepSeek model
+ollama run deepseek-r1:1.5b</code></pre>
+                </div>
+
+                <div class="bg-gray-900 rounded-lg p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-white font-semibold">RAG Implementation</h4>
+                    <span class="text-gray-400 text-sm">Python</span>
+                  </div>
+                  <pre class="text-green-400 text-sm"><code>from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+from llama_index.llms.ollama import Ollama
+
+# Load and index documents
+documents = SimpleDirectoryReader("data/").load_data()
+index = VectorStoreIndex.from_documents(documents)
+
+# Create query engine
+llm = Ollama(model="deepseek-r1:1.5b")
+query_engine = index.as_query_engine(llm=llm)
+
+# Query the index
+response = query_engine.query(
+    "What are the features of invisiblebrowser.in?"
+)</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Conditional Forwarding -->
+      <section id="conditional-forwarding" class="section-spacing bg-slate-50">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">Implementation: Conditional Chat Forwarding</h2>
+
+          <div class="prose prose-lg max-w-none mb-12">
+            <p class="text-xl text-gray-700 leading-relaxed">
+              A key feature of the proposed chatbot is its ability to intelligently manage user interactions based on their engagement level and authentication status. After an unauthenticated user has engaged in four chat exchanges, the system will automatically forward the entire conversation log to the startup team via a messaging platform.
+            </p>
+          </div>
+
+          <!-- User Session Management -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">User Session and State Management</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <p class="text-gray-700">
+                  To implement the conditional forwarding feature, the backend must track the state of each user's interaction with the chatbot. This involves monitoring whether a user is logged in and counting the number of messages they have sent in a single session.
+                </p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-blue-900 mb-2">Session State Tracking</h4>
+                  <div class="space-y-3">
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-user-check text-blue-600 mt-1"></i>
+                      <div>
+                        <strong class="text-blue-900">User Login Status</strong>
+                        <p class="text-blue-800 text-sm mt-1">Check authentication token or session cookie</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-counter text-blue-600 mt-1"></i>
+                      <div>
+                        <strong class="text-blue-900">Message Counter</strong>
+                        <p class="text-blue-800 text-sm mt-1">Increment with each message from unauthenticated users</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-clock text-blue-600 mt-1"></i>
+                      <div>
+                        <strong class="text-blue-900">Session Timeout</strong>
+                        <p class="text-blue-800 text-sm mt-1">Reset counter on session expiration</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-slate-50 p-6 rounded-lg border">
+                <h4 class="font-semibold text-gray-900 mb-4">Technical Implementation</h4>
+                <div class="space-y-4">
+                  <div>
+                    <h5 class="font-medium text-gray-900 mb-2">Flask-Session Configuration</h5>
+                    <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                      # Configure session management
+                      <br>
+                      app.config['SESSION_TYPE'] = 'filesystem'
+                      <br>
+                      app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
+                    </div>
+                  </div>
+
+                  <div>
+                    <h5 class="font-medium text-gray-900 mb-2">State Storage</h5>
+                    <div class="space-y-1 text-sm text-gray-700">
+                      <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                        <span>is_logged_in: Boolean</span>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                        <span>message_count: Integer</span>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                        <span>last_active: Timestamp</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telegram Integration -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Telegram Integration (Recommended)</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+              <div class="lg:col-span-2 space-y-6">
+                <p class="text-gray-700">
+                  Telegram offers a far more developer-friendly and cost-effective solution for programmatic messaging. The Telegram Bot API is completely free to use, well-documented, and supported by a robust ecosystem of libraries.
+                </p>
+
+                <div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-green-900 mb-3">Bot Setup Process</h4>
+                  <ol class="space-y-2 text-green-800 text-sm">
+                    <li><strong>1.</strong> Start chat with <code>@BotFather</code> in Telegram</li>
+                    <li><strong>2.</strong> Send <code>/newbot</code> command and follow prompts</li>
+                    <li><strong>3.</strong> Receive unique HTTP API token</li>
+                    <li><strong>4.</strong> Create Telegram group for receiving logs</li>
+                    <li><strong>5.</strong> Add bot to group and get chat ID</li>
+                  </ol>
+                </div>
+
+                <div class="bg-gray-900 rounded-lg p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-white font-semibold">Installation</h4>
+                    <span class="text-gray-400 text-sm">Python</span>
+                  </div>
+                  <pre class="text-green-400 text-sm"><code>pip install python-telegram-bot</code></pre>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Configuration</h4>
+                  <div class="space-y-3 text-sm">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-teal-500 rounded-full"></span>
+                      <span>TELEGRAM_BOT_TOKEN</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      <span>TELEGRAM_CHAT_ID</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                      <span>Environment Variables</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-green-100 border border-green-300 p-4 rounded-lg">
+                  <h5 class="font-semibold text-green-900 mb-2">Advantages</h5>
+                  <ul class="space-y-1 text-sm text-green-800">
+                    <li>• Completely free API</li>
+                    <li>• No business verification</li>
+                    <li>• Excellent documentation</li>
+                    <li>• Reliable delivery</li>
+                    <li>• Easy setup process</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WhatsApp Alternative -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">WhatsApp Integration (Alternative)</h3>
+
+            <div class="bg-amber-50 border border-amber-200 p-6 rounded-lg">
+              <div class="flex items-start space-x-4">
+                <i class="fas fa-exclamation-triangle text-amber-600 text-xl mt-1"></i>
+                <div class="space-y-3">
+                  <h4 class="font-semibold text-amber-900">Important Considerations</h4>
+                  <p class="text-amber-800">
+                    While WhatsApp is the stated preference, integrating with WhatsApp's API is notoriously complex and often comes with significant costs. The official WhatsApp Business API is typically offered through Meta's Business Solution Providers (BSPs) with associated fees.
+                  </p>
+
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h5 class="font-medium text-amber-900 mb-2">Potential Issues:</h5>
+                      <ul class="space-y-1 text-sm text-amber-800">
+                        <li>• Account ban risk with unofficial libraries</li>
+                        <li>• Per-message fees and platform charges</li>
+                        <li>• Complex business verification process</li>
+                        <li>• Technical implementation challenges</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 class="font-medium text-amber-900 mb-2">Recommendation:</h5>
+                      <p class="text-sm text-amber-800">
+                        Implement Telegram integration first as the primary solution, then explore WhatsApp integration as a future enhancement if business needs justify the additional complexity and cost.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Multilingual Support -->
+      <section id="multilingual-support" class="section-spacing bg-white">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">Implementation: Multilingual Support</h2>
+
+          <div class="prose prose-lg max-w-none mb-12">
+            <p class="text-xl text-gray-700 leading-relaxed">
+              The chatbot system is designed to offer <strong>multilingual support</strong> out of the box, leveraging the inherent capabilities of the DeepSeek R1-V2 model to understand and respond to queries in multiple languages, which is crucial for reaching a global audience.
+            </p>
+          </div>
+
+          <!-- Model-Level Language Support -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Model-Level Language Support</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <p class="text-gray-700">
+                  The DeepSeek R1-V2 model provides robust multilingual support, which is a cornerstone of the chatbot's design. While its primary training data emphasizes <strong>English and Chinese</strong>, the model's architecture is inherently capable of handling a wide range of other languages.
+                </p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-blue-900 mb-3">Language Detection & Switching</h4>
+                  <div class="space-y-3">
+                    <div>
+                      <strong class="text-blue-900">Manual Selection:</strong>
+                      <p class="text-blue-800 text-sm mt-1">User selects language via chat interface buttons or commands</p>
+                    </div>
+                    <div>
+                      <strong class="text-blue-900">Automatic Detection:</strong>
+                      <p class="text-blue-800 text-sm mt-1">Use language detection libraries or model's inherent capabilities</p>
+                    </div>
+                    <div>
+                      <strong class="text-blue-900">Model-Level Switching:</strong>
+                      <p class="text-blue-800 text-sm mt-1">Prompt model to identify input language and respond accordingly</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Supported Languages</h4>
+                  <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
+                      <span>English (Primary)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                      <span>Chinese (Primary)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                      <span>Spanish</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-purple-500 rounded-full"></span>
+                      <span>French</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-orange-500 rounded-full"></span>
+                      <span>German</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-teal-500 rounded-full"></span>
+                      <span>Japanese</span>
+                    </div>
+                  </div>
+                  <p class="text-gray-600 text-xs mt-4 italic">*Model performance may vary for languages beyond English and Chinese</p>
+                </div>
+
+                <div class="bg-green-100 border border-green-300 p-4 rounded-lg">
+                  <h5 class="font-semibold text-green-900 mb-2">Future Enhancement</h5>
+                  <p class="text-sm text-green-800">
+                    The model's open-weight nature means it can be fine-tuned on custom datasets in specific languages to further enhance performance for the startup's unique use case and target markets.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- UI Internationalization -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">User Interface Internationalization (i18n)</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+              <div class="lg:col-span-2 space-y-6">
+                <p class="text-gray-700">
+                  To provide a truly global user experience, the chatbot's user interface (UI) must be as multilingual as its core AI engine. This involves implementing internationalization (i18n) using dedicated libraries to manage and display UI elements in the user's preferred language.
+                </p>
+
+                <div class="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-purple-900 mb-3">Flask-Babel Implementation</h4>
+                  <p class="text-purple-800 text-sm mb-3">
+                    For a Flask-based backend, Flask-Babel is the most widely adopted library for internationalization. It provides comprehensive tools for managing translations, formatting dates/numbers, and handling pluralization<a href="https://centus.com/blog/python-localization" class="citation-link">[101]</a>.
+                  </p>
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                    pip install flask-babel
+                  </div>
+                </div>
+
+                <p class="text-gray-700">
+                  The core principle involves replacing all hardcoded strings with special translation functions (typically
+                  <code class="bg-slate-100 px-2 py-1 rounded text-sm">_()</code>), which act as markers for strings that should be translated based on the user's selected locale.
+                </p>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Translation Workflow</h4>
+                  <div class="space-y-3 text-sm">
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs">1</span>
+                      <span>Mark strings with _()</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs">2</span>
+                      <span>Extract to .pot template</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs">3</span>
+                      <span>Create .po translation files</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs">4</span>
+                      <span>Compile to .mo binary files</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-teal-100 border border-teal-300 p-4 rounded-lg">
+                  <h5 class="font-semibold text-teal-900 mb-2">Directory Structure</h5>
+                  <div class="font-mono text-xs text-teal-800 space-y-1">
+                    <div>project/</div>
+                    <div class="ml-2">├── locales/</div>
+                    <div class="ml-4">│ ├── en/</div>
+                    <div class="ml-6">│ │ └── LC_MESSAGES/</div>
+                    <div class="ml-8">│ │ ├── messages.po</div>
+                    <div class="ml-8">│ │ └── messages.mo</div>
+                    <div class="ml-4">│ ├── fr/</div>
+                    <div class="ml-4">│ ├── de/</div>
+                    <div class="ml-4">│ └── zh/</div>
+                    <div class="ml-2">└── ...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Language Switching -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Dynamic Language Switching</h3>
+
+            <div class="bg-slate-50 p-8 rounded-lg border">
+              <div class="grid lg:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                  <p class="text-gray-700">
+                    A key feature of a well-implemented internationalized application is the ability to dynamically switch the UI language based on user preference. This can be achieved through multiple methods:
+                  </p>
+
+                  <div class="space-y-4">
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-link text-blue-500 mt-1"></i>
+                      <div>
+                        <strong class="text-gray-900">URL Parameters</strong>
+                        <p class="text-gray-600 text-sm mt-1">Use ?lang=fr in URL for immediate switching</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-database text-green-500 mt-1"></i>
+                      <div>
+                        <strong class="text-gray-900">Session Variables</strong>
+                        <p class="text-gray-600 text-sm mt-1">Store preference for duration of visit</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-user text-purple-500 mt-1"></i>
+                      <div>
+                        <strong class="text-gray-900">User Profile</strong>
+                        <p class="text-gray-600 text-sm mt-1">Persistent storage for logged-in users</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-globe text-orange-500 mt-1"></i>
+                      <div>
+                        <strong class="text-gray-900">Browser Headers</strong>
+                        <p class="text-gray-600 text-sm mt-1">Auto-detect from Accept-Language header</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-gray-900 rounded-lg p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-white font-semibold">Implementation Example</h4>
+                    <span class="text-gray-400 text-sm">Python/Flask</span>
+                  </div>
+                  <pre class="text-green-400 text-sm"><code>@app.before_request
+def before_request():
+    # Check for language parameter
+    if 'lang' in request.args:
+        session['lang'] = request.args['lang']
+        babel.refresh()
+    
+    # Check session for language
+    lang = session.get('lang', None)
+    if lang:
+        g.lang = lang
+    else:
+        # Auto-detect from browser
+        g.lang = request.accept_languages.best_match(['en', 'fr', 'de', 'zh'])</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Backend Integration -->
+      <section id="backend-integration" class="section-spacing bg-slate-50">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">Backend Integration: Routes, Controllers, and Services</h2>
+
+          <div class="prose prose-lg max-w-none mb-12">
+            <p class="text-xl text-gray-700 leading-relaxed">
+              The backend will expose a clean and intuitive RESTful API to handle all chatbot-related operations. This section details the architectural organization of routes, controllers, and services that form the core business logic of the application.
+            </p>
+          </div>
+
+          <!-- API Route Design -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">API Route Design</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-semibold text-gray-900">POST /chat/message</h4>
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Primary Endpoint</span>
+                  </div>
+                  <p class="text-gray-600 text-sm mb-3">
+                    Core endpoint for receiving user messages. Frontend sends POST request with user message in JSON body.
+                  </p>
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                    { "message": "Hello! I have a question..." }
+                  </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-semibold text-gray-900">GET /chat/history</h4>
+                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Secondary Endpoint</span>
+                  </div>
+                  <p class="text-gray-600 text-sm mb-3">
+                    Retrieves conversation history for current session. Returns JSON array of message objects.
+                  </p>
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                    [
+                    <br>
+                    &nbsp;&nbsp;{"sender": "user", "text": "Hello!"},
+                    <br>
+                    &nbsp;&nbsp;{"sender": "bot", "text": "How can I help?"}
+                    <br>
+                    ]
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Request Flow</h4>
+                  <div class="space-y-3 text-sm">
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs">1</span>
+                      <span>Frontend sends user message</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs">2</span>
+                      <span>Controller validates request</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs">3</span>
+                      <span>ChatManager processes message</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs">4</span>
+                      <span>AIService generates response</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-teal-500 text-white rounded-full flex items-center justify-center text-xs">5</span>
+                      <span>Return response to frontend</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                  <h5 class="font-semibold text-amber-900 mb-2">Additional Endpoints</h5>
+                  <ul class="space-y-1 text-sm text-amber-800">
+                    <li>• <strong>GET /chat/status</strong> - Check session status</li>
+                    <li>• <strong>POST /chat/language</strong> - Set language preference</li>
+                    <li>• <strong>GET /health</strong> - Service health check</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controller Layer -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Controller Layer (ChatController)</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+              <div class="lg:col-span-2 space-y-6">
+                <p class="text-gray-700">
+                  The controller layer acts as the intermediary between the API routes and the service layer. It handles incoming HTTP requests, validates request data, calls appropriate service methods, and formats responses to be sent back to the frontend.
+                </p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-blue-900 mb-3">Controller Responsibilities</h4>
+                  <div class="space-y-2 text-blue-800 text-sm">
+                    <div class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-blue-600"></i>
+                      <span>Handle incoming HTTP requests</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <i class="fas fa-shield-alt text-blue-600"></i>
+                      <span>Validate request data and parameters</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <i class="fas fa-cogs text-blue-600"></i>
+                      <span>Orchestrate service method calls</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <i class="fas fa-reply text-blue-600"></i>
+                      <span>Format and return HTTP responses</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <i class="fas fa-exclamation-triangle text-blue-600"></i>
+                      <span>Handle errors and exceptions</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-gray-900 rounded-lg p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-white font-semibold">ChatController Example</h4>
+                    <span class="text-gray-400 text-sm">Python</span>
+                  </div>
+                  <pre class="text-green-400 text-sm"><code>class ChatController:
+    def __init__(self, chat_manager):
+        self.chat_manager = chat_manager
+    
+    def send_message(self, request_data):
+        """Handle incoming chat message"""
+        try:
+            # Validate request
+            message = request_data.get('message')
+            if not message:
+                return error_response("Message required", 400)
+            
+            # Process through chat manager
+            response = self.chat_manager.process_message(message)
+            
+            return success_response(response)
+            
+        except Exception as e:
+            return error_response(str(e), 500)
+    
+    def get_history(self, session_id):
+        """Retrieve chat history"""
+        try:
+            history = self.chat_manager.get_session_history(session_id)
+            return success_response(history)
+        except Exception as e:
+            return error_response(str(e), 500)</code></pre>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Separation of Concerns</h4>
+                  <div class="space-y-3 text-sm">
+                    <div>
+                      <strong class="text-gray-900">Controller:</strong>
+                      <p class="text-gray-600">Handles "what" needs to be done</p>
+                    </div>
+                    <div>
+                      <strong class="text-gray-900">Service:</strong>
+                      <p class="text-gray-600">Handles "how" to do it</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-purple-100 border border-purple-300 p-4 rounded-lg">
+                  <h5 class="font-semibold text-purple-900 mb-2">Benefits</h5>
+                  <ul class="space-y-1 text-sm text-purple-800">
+                    <li>• Clean, maintainable code</li>
+                    <li>• Easy to test business logic</li>
+                    <li>• Modular architecture</li>
+                    <li>• Reduced code duplication</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Service Layer -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Service Layer</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8 mb-8">
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-comments text-2xl text-blue-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">ChatManager</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  Core chat logic and state management. Processes messages, tracks session state, and triggers forwarding logic.
+                </p>
+                <div class="space-y-2 text-xs">
+                  <div class="bg-blue-50 px-2 py-1 rounded">process_message()</div>
+                  <div class="bg-blue-50 px-2 py-1 rounded">get_session_history()</div>
+                  <div class="bg-blue-50 px-2 py-1 rounded">check_forwarding_conditions()</div>
+                </div>
+              </div>
+
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-brain text-2xl text-purple-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">AIService</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  Interfaces with MinionAgent/DeepSeek. Handles AI processing, web scraping, and response generation.
+                </p>
+                <div class="space-y-2 text-xs">
+                  <div class="bg-purple-50 px-2 py-1 rounded">generate_response()</div>
+                  <div class="bg-purple-50 px-2 py-1 rounded">scrape_web_data()</div>
+                  <div class="bg-purple-50 px-2 py-1 rounded">process_with_llm()</div>
+                </div>
+              </div>
+
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-paper-plane text-2xl text-teal-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">MessageForwarder</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  Handles WhatsApp/Telegram notifications. Formats and sends chat logs when forwarding conditions are met.
+                </p>
+                <div class="space-y-2 text-xs">
+                  <div class="bg-teal-50 px-2 py-1 rounded">send_telegram_notification()</div>
+                  <div class="bg-teal-50 px-2 py-1 rounded">format_chat_log()</div>
+                  <div class="bg-teal-50 px-2 py-1 rounded">handle_forwarding_trigger()</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Service Interactions -->
+            <div class="bg-slate-50 p-8 rounded-lg border">
+              <h4 class="font-semibold text-gray-900 mb-6">Service Interaction Flow</h4>
+              <div class="grid lg:grid-cols-4 gap-6">
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-comments text-xl"></i>
+                  </div>
+                  <h5 class="font-medium text-gray-900 mb-2">1. ChatManager</h5>
+                  <p class="text-gray-600 text-sm">Receives message, checks session state, decides processing path</p>
+                </div>
+
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-purple-500 text-white rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-arrow-right text-xl"></i>
+                  </div>
+                  <h5 class="font-medium text-gray-900 mb-2">2. AIService</h5>
+                  <p class="text-gray-600 text-sm">If normal processing, sends to AI for response generation</p>
+                </div>
+
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-teal-500 text-white rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-arrow-right text-xl"></i>
+                  </div>
+                  <h5 class="font-medium text-gray-900 mb-2">3. MessageForwarder</h5>
+                  <p class="text-gray-600 text-sm">If forwarding conditions met, triggers notification</p>
+                </div>
+
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-check text-xl"></i>
+                  </div>
+                  <h5 class="font-medium text-gray-900 mb-2">4. Response</h5>
+                  <p class="text-gray-600 text-sm">Returns AI response to user via controller</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Utilities and Configuration -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Utilities and Configuration</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-key text-2xl text-yellow-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">Configuration Management</h4>
+                  </div>
+                  <p class="text-gray-600 text-sm mb-4">
+                    Secure management of API keys and sensitive configuration using environment variables and python-dotenv.
+                  </p>
+
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs mb-3">
+                    pip install python-dotenv
+                  </div>
+
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                    # .env file
+                    <br>
+                    TELEGRAM_BOT_TOKEN=your_token_here
+                    <br>
+                    TELEGRAM_CHAT_ID=your_chat_id
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-bug text-2xl text-red-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">Centralized Logging</h4>
+                  </div>
+                  <p class="text-gray-600 text-sm mb-4">
+                    Python's built-in logging module for debugging and monitoring with different log levels and flexible configuration.
+                  </p>
+
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                    import logging
+                    <br>
+                    logger = logging.getLogger(__name__)
+                    <br>
+                    logger.info("Message processed successfully")
+                    <br>
+                    logger.error("Error processing message", exc_info=True)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Deployment and Next Steps -->
+      <section id="deployment" class="section-spacing bg-white">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">Deployment and Next Steps</h2>
+
+          <!-- Local Development Setup -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Local Development Setup</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <p class="text-gray-700">
+                  To get started with development, follow these steps to set up a local environment. This setup ensures isolation of dependencies and proper configuration for development and testing.
+                </p>
+
+                <div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-green-900 mb-3">Setup Steps</h4>
+                  <ol class="space-y-2 text-green-800 text-sm">
+                    <li><strong>1.</strong> Create virtual environment:
+                      <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">python -m venv venv</code>
+                    </li>
+                    <li><strong>2.</strong> Activate environment:
+                      <br>
+                      <span class="ml-4">• Windows:
+                        <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">venv\Scripts\activate</code>
+                      </span>
+                      <br>
+                      <span class="ml-4">• macOS/Linux:
+                        <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">source venv/bin/activate</code>
+                      </span>
+                    </li>
+                    <li><strong>3.</strong> Install dependencies:
+                      <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">pip install -r requirements.txt</code>
+                    </li>
+                    <li><strong>4.</strong> Create
+                      <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">.env</code> file with configuration
+                    </li>
+                    <li><strong>5.</strong> Run development server:
+                      <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">python app.py</code>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Requirements.txt</h4>
+                  <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs">
+                    fastapi==0.95.2
+                    <br>
+                    uvicorn==0.22.0
+                    <br>
+                    minion-agent-x==1.0.0
+                    <br>
+                    python-telegram-bot==20.4
+                    <br>
+                    python-dotenv==1.0.0
+                    <br>
+                    flask-babel==3.1.0
+                    <br>
+                    requests==2.31.0
+                    <br>
+                    beautifulsoup4==4.12.2
+                  </div>
+                </div>
+
+                <div class="bg-blue-100 border border-blue-300 p-4 rounded-lg">
+                  <h5 class="font-semibold text-blue-900 mb-2">Development Tools</h5>
+                  <ul class="space-y-1 text-sm text-blue-800">
+                    <li>• VS Code with Python extensions</li>
+                    <li>• Postman for API testing</li>
+                    <li>• ngrok for local tunneling</li>
+                    <li>• Docker for containerization</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Deployment Considerations -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Deployment Considerations for a Startup</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-cube text-2xl text-blue-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">Docker Container</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  Containerize the application for easy deployment and consistent environment across development and production.
+                </p>
+                <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                  FROM python:3.11-slim
+                  <br>
+                  COPY . /app
+                  <br>
+                  RUN pip install -r requirements.txt
+                  <br>
+                  CMD ["uvicorn", "app:app", "--host", "0.0.0.0"]
+                </div>
+              </div>
+
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-server text-2xl text-green-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">VPS Deployment</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  Deploy to low-cost VPS providers like DigitalOcean, Linode, or Vultr for cost-effective hosting.
+                </p>
+                <div class="space-y-2 text-sm text-gray-700">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>$5-10/month plans sufficient</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span>Easy scaling options</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                    <span>Full control over environment</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-cloud text-2xl text-purple-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">Managed Services</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  For more scalable solutions, consider managed container services that auto-scale based on demand.
+                </p>
+                <div class="space-y-2 text-sm text-gray-700">
+                  <div>• AWS Fargate</div>
+                  <div>• Google Cloud Run</div>
+                  <div>• Azure Container Instances</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Future Enhancements -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Future Enhancements and Scalability</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-brain text-2xl text-purple-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">AI Model Enhancement</h4>
+                  </div>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li>• Fine-tune DeepSeek on custom datasets</li>
+                    <li>• Add domain-specific knowledge</li>
+                    <li>• Implement response rating system</li>
+                    <li>• Continuous learning from user feedback</li>
+                  </ul>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-tools text-2xl text-blue-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">Agent Capabilities</h4>
+                  </div>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li>• Add calculator and calendar tools</li>
+                    <li>• CRM system integration</li>
+                    <li>• Database query capabilities</li>
+                    <li>• External API integrations</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-expand-arrows-alt text-2xl text-green-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">Infrastructure Scaling</h4>
+                  </div>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li>• Horizontal scaling with load balancers</li>
+                    <li>• Dedicated AI processing servers</li>
+                    <li>• Cloud function deployment</li>
+                    <li>• Multi-region deployment</li>
+                  </ul>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-chart-line text-2xl text-orange-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">Analytics & Monitoring</h4>
+                  </div>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li>• User interaction analytics</li>
+                    <li>• Performance monitoring</li>
+                    <li>• Conversation flow optimization</li>
+                    <li>• A/B testing capabilities</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Final Recommendations -->
+          <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-lg border">
+            <h3 class="serif-display text-2xl font-semibold text-gray-900 mb-6">Implementation Roadmap</h3>
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-4">
+                <h4 class="font-semibold text-gray-900">Phase 1: Core Implementation</h4>
+                <ul class="space-y-2 text-sm text-gray-700">
+                  <li>• Set up FastAPI backend framework</li>
+                  <li>• Implement Telegram notification system</li>
+                  <li>• Integrate DeepSeek R1-V2 with MinionAgent</li>
+                  <li>• Build basic chat interface</li>
+                  <li>• Test conditional forwarding logic</li>
+                </ul>
+              </div>
+              <div class="space-y-4">
+                <h4 class="font-semibold text-gray-900">Phase 2: Enhancement & Deployment</h4>
+                <ul class="space-y-2 text-sm text-gray-700">
+                  <li>• Add multilingual support with Flask-Babel</li>
+                  <li>• Implement comprehensive logging</li>
+                  <li>• Containerize with Docker</li>
+                  <li>• Deploy to production environment</li>
+                  <li>• Monitor and optimize performance</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="mt-6 p-4 bg-white rounded-lg border">
+              <p class="text-gray-700 text-sm">
+                <strong>Recommendation:</strong> Start with Telegram integration as the primary messaging platform due to its free, reliable, and developer-friendly API. This allows immediate implementation of the conditional forwarding feature without budget constraints. WhatsApp integration can be explored as a future enhancement if business needs justify the additional complexity and potential costs.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <div class="text-center">
+            <h3 class="serif-display text-2xl font-semibold mb-4">Ready to Implement?</h3>
+            <p class="text-gray-300 mb-6">
+              This comprehensive implementation plan provides everything needed to build a sophisticated, cost-effective chatbot for invisiblebrowser.in. Start with the core features and gradually enhance based on user feedback and business needs.
+            </p>
+            <div class="flex justify-center space-x-4">
+              <span class="tech-badge bg-gray-800 text-white">DeepSeek R1-V2</span>
+              <span class="tech-badge bg-gray-800 text-white">MinionAgent</span>
+              <span class="tech-badge bg-gray-800 text-white">FastAPI</span>
+              <span class="tech-badge bg-gray-800 text-white">Telegram API</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+        // Mobile TOC Toggle
+        document.getElementById('tocToggle').addEventListener('click', function() {
+            const tocNav = document.getElementById('tocNav');
+            tocNav.classList.toggle('open');
+            // Close TOC when clicking outside
+            if (tocNav.classList.contains('open')) {
+                document.addEventListener('click', closeTOCOnClickOutside);
+            }
+        });
+
+        // Close TOC when clicking outside
+        function closeTOCOnClickOutside(event) {
+            const tocNav = document.getElementById('tocNav');
+            const tocToggle = document.getElementById('tocToggle');
+            if (!tocNav.contains(event.target) && event.target !== tocToggle) {
+                tocNav.classList.remove('open');
+                document.removeEventListener('click', closeTOCOnClickOutside);
+            }
+        }
+
+        // Smooth scrolling for TOC links
+        document.querySelectorAll('#tocNav a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // Close mobile TOC
+                    document.getElementById('tocNav').classList.remove('open');
+                }
+            });
+        });
+
+        // Highlight active TOC item on scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('#tocNav a[href^="#"]');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (window.pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('text-blue-600', 'font-semibold');
+                link.classList.add('text-gray-600');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.remove('text-gray-600');
+                    link.classList.add('text-blue-600', 'font-semibold');
+                }
+            });
+        });
+    </script>
+  </body>
+
+</html>
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Full-Stack Chatbot Implementation Plan for invisiblebrowser.in</title>
+
+    <!-- External Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #475569;
+            --accent: #3b82f6;
+            --muted: #f1f5f9;
+            --border: #e2e8f0;
+        }
+        
+        * {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+            color: var(--primary);
+        }
+        
+        .serif-display {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .toc-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            border-right: 1px solid var(--border);
+            z-index: 100;
+            overflow-y: auto;
+            padding: 2rem 0;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+        
+        .section-spacing {
+            padding: 4rem 0;
+        }
+        
+        .citation-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.875rem;
+            vertical-align: super;
+            margin-left: 2px;
+        }
+        
+        .citation-link:hover {
+            text-decoration: underline;
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        
+        .bento-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+        }
+        
+        .tech-badge {
+            display: inline-block;
+            background: var(--muted);
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0.25rem;
+        }
+        
+        .architecture-diagram {
+            background: linear-gradient(45deg, #f8fafc 25%, transparent 25%), 
+                       linear-gradient(-45deg, #f8fafc 25%, transparent 25%), 
+                       linear-gradient(45deg, transparent 75%, #f8fafc 75%), 
+                       linear-gradient(-45deg, transparent 75%, #f8fafc 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 1024px) {
+            .toc-fixed {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .toc-fixed.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .px-8 {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .bento-card {
+                word-wrap: break-word;
+            }
+        }
+    </style>
+  </head>
+
+  <body class="bg-slate-50">
+    <!-- Mobile TOC Toggle -->
+    <button id="tocToggle" class="lg:hidden fixed top-4 left-4 z-50 bg-white p-3 rounded-lg shadow-lg border">
+      <i class="fas fa-bars text-gray-700"></i>
+    </button>
+
+    <!-- Table of Contents -->
+    <nav id="tocNav" class="toc-fixed bg-white shadow-lg">
+      <div class="px-6">
+        <h3 class="serif-display text-lg font-semibold text-gray-900 mb-6">Contents</h3>
+        <ul class="space-y-3 text-sm">
+          <li>
+            <a href="#executive-summary" class="block text-gray-600 hover:text-blue-600 transition-colors">Executive Summary</a>
+          </li>
+          <li>
+            <a href="#system-architecture" class="block text-gray-600 hover:text-blue-600 transition-colors">System Architecture</a>
+          </li>
+          <li>
+            <a href="#question-answering" class="block text-gray-600 hover:text-blue-600 transition-colors">Question Answering Implementation</a>
+          </li>
+          <li>
+            <a href="#conditional-forwarding" class="block text-gray-600 hover:text-blue-600 transition-colors">Conditional Chat Forwarding</a>
+          </li>
+          <li>
+            <a href="#multilingual-support" class="block text-gray-600 hover:text-blue-600 transition-colors">Multilingual Support</a>
+          </li>
+          <li>
+            <a href="#backend-integration" class="block text-gray-600 hover:text-blue-600 transition-colors">Backend Integration</a>
+          </li>
+          <li>
+            <a href="#deployment" class="block text-gray-600 hover:text-blue-600 transition-colors">Deployment &amp; Next Steps</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Hero Section with Bento Layout -->
+      <section class="hero-gradient text-white relative overflow-hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-20"></div>
+        <div class="container mx-auto px-8 py-16 relative z-10">
+          <div class="bento-grid max-w-7xl">
+            <!-- Main Hero Content -->
+            <div class="space-y-8">
+              <div class="space-y-4">
+                <h1 class="serif-display text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight">
+                  <span class="italic">Intelligent</span>
+                  <br/>
+                  Chatbot Architecture
+                  <br/>
+                  <span class="text-blue-200">for invisiblebrowser.in</span>
+                </h1>
+                <p class="text-base sm:text-xl lg:text-2xl text-blue-100 max-w-3xl leading-relaxed">
+                  A comprehensive, cost-effective implementation plan leveraging free open-source technologies for dynamic question answering, intelligent lead capture, and multilingual support.
+                </p>
+              </div>
+
+              <div class="flex flex-wrap gap-4">
+                <span class="tech-badge bg-white bg-opacity-20 text-white">DeepSeek R1-V2</span>
+                <span class="tech-badge bg-white bg-opacity-20 text-white">MinionAgent</span>
+                <span class="tech-badge bg-white bg-opacity-20 text-white">FastAPI</span>
+                <span class="tech-badge bg-white bg-opacity-20 text-white">Telegram API</span>
+              </div>
+            </div>
+
+            <!-- Key Highlights Card -->
+            <div class="bento-card bg-white bg-opacity-10 backdrop-blur-sm">
+              <h3 class="serif-display text-2xl font-semibold mb-6">Key Implementation Highlights</h3>
+              <div class="space-y-4">
+                <div class="flex items-start space-x-3">
+                  <i class="fas fa-brain text-blue-300 mt-1"></i>
+                  <div>
+                    <h4 class="font-semibold">DeepSeek R1-V2 Integration</h4>
+                    <p class="text-blue-100 text-sm">Free, powerful LLM with multilingual capabilities</p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                  <i class="fas fa-spider text-green-300 mt-1"></i>
+                  <div>
+                    <h4 class="font-semibold">MinionAgent Framework</h4>
+                    <p class="text-blue-100 text-sm">Dynamic web scraping for real-time answers</p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                  <i class="fas fa-forward text-yellow-300 mt-1"></i>
+                  <div>
+                    <h4 class="font-semibold">Intelligent Lead Capture</h4>
+                    <p class="text-blue-100 text-sm">Conditional chat forwarding after 4 messages</p>
+                  </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                  <i class="fas fa-globe text-purple-300 mt-1"></i>
+                  <div>
+                    <h4 class="font-semibold">Multilingual Support</h4>
+                    <p class="text-blue-100 text-sm">Native support for English, Chinese, and more</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Executive Summary -->
+      <section id="executive-summary" class="section-spacing bg-white">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <div class="prose prose-lg max-w-none">
+            <h2 class="serif-display text-4xl font-bold text-gray-900 mb-8">Executive Summary: A Free, Customizable, Code-Based Chatbot</h2>
+
+            <div class="grid lg:grid-cols-3 gap-8 mb-12">
+              <div class="lg:col-span-2 space-y-6">
+                <p class="text-xl text-gray-700 leading-relaxed">
+                  This document outlines a comprehensive, cost-effective, and highly customizable plan for implementing a full-stack chatbot for the early-stage startup,
+                  <code class="bg-slate-100 px-2 py-1 rounded text-sm">invisiblebrowser.in</code>. The proposed solution is tailored for a backend engineer who prefers a code-based approach over off-the-shelf, no-code platforms.
+                </p>
+
+                <p class="text-gray-700">
+                  The entire system is designed to be implemented using free, open-source technologies, eliminating upfront software costs and providing maximum flexibility for future development and scaling. The architecture is modular, separating concerns between the user interface, backend logic, AI processing, and external communication, which facilitates maintainability and independent scaling of components.
+                </p>
+              </div>
+
+              <div class="bg-slate-50 p-6 rounded-lg border">
+                <h3 class="font-semibold text-gray-900 mb-4">Core Technology Stack</h3>
+                <div class="space-y-3">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span class="text-sm">FastAPI Backend Framework</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <span class="text-sm">DeepSeek R1-V2 AI Model</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span class="text-sm">MinionAgent Framework</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-teal-500 rounded-full"></div>
+                    <span class="text-sm">Telegram Bot API</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg mb-8">
+              <h3 class="font-semibold text-blue-900 mb-2">Key Innovation</h3>
+              <p class="text-blue-800">
+                The core of the system leverages a powerful, free AI model for generating intelligent responses based on real-time web and site data. A key feature is its intelligent user engagement tracking, which conditionally forwards chat logs to the business owner via a preferred messaging platform after a set number of interactions, enabling proactive lead capture without requiring user registration.
+              </p>
+            </div>
+
+            <p class="text-gray-700">
+              The system is built with multilingual capabilities at its core, ensuring a broad and inclusive user experience from the outset. This plan provides not only the high-level architectural design but also detailed, step-by-step implementation guidance, including specific libraries, code structures, and integration patterns to be used within the existing backend codebase.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- System Architecture -->
+      <section id="system-architecture" class="section-spacing bg-slate-50">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">System Architecture and Component Overview</h2>
+
+          <div class="prose prose-lg max-w-none mb-12">
+            <p class="text-xl text-gray-700 leading-relaxed">
+              The architecture of the chatbot system is designed to be modular, scalable, and easy to integrate into the existing
+              <code class="bg-slate-100 px-2 py-1 rounded text-sm">invisiblebrowser.in</code> infrastructure. It follows a standard client-server pattern with clear separation between components.
+            </p>
+          </div>
+
+          <!-- Architecture Diagram -->
+          <div class="architecture-diagram p-8 rounded-lg mb-12">
+            <div class="grid md:grid-cols-4 gap-6">
+              <!-- Frontend -->
+              <div class="bg-white p-6 rounded-lg shadow-sm border">
+                <div class="text-center mb-4">
+                  <i class="fas fa-desktop text-3xl text-blue-500 mb-2"></i>
+                  <h3 class="font-semibold text-gray-900">Frontend</h3>
+                  <p class="text-sm text-gray-600">Web-Based Chat Interface</p>
+                </div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span>HTML/CSS/JS</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>AJAX Calls</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span> 
+                    <span>Responsive Design</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Backend -->
+              <div class="bg-white p-6 rounded-lg shadow-sm border">
+                <div class="text-center mb-4">
+                  <i class="fas fa-server text-3xl text-green-500 mb-2"></i>
+                  <h3 class="font-semibold text-gray-900">Backend</h3>
+                  <p class="text-sm text-gray-600">Python Web Service</p>
+                </div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>FastAPI Framework</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span>RESTful APIs</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                    <span>Session Management</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- AI Engine -->
+              <div class="bg-white p-6 rounded-lg shadow-sm border">
+                <div class="text-center mb-4">
+                  <i class="fas fa-brain text-3xl text-purple-500 mb-2"></i>
+                  <h3 class="font-semibold text-gray-900">AI Engine</h3>
+                  <p class="text-sm text-gray-600">DeepSeek + MinionAgent</p>
+                </div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                    <span>DeepSeek R1-V2</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>MinionAgent</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span>Web Scraping</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Communication -->
+              <div class="bg-white p-6 rounded-lg shadow-sm border">
+                <div class="text-center mb-4">
+                  <i class="fas fa-paper-plane text-3xl text-teal-500 mb-2"></i>
+                  <h3 class="font-semibold text-gray-900">Communication</h3>
+                  <p class="text-sm text-gray-600">WhatsApp/Telegram Integration</p>
+                </div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-teal-500 rounded-full"></span>
+                    <span>Telegram Bot API</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>Message Forwarding</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span>Lead Notification</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-12">
+            <div class="space-y-8">
+              <div>
+                <h3 class="serif-display text-2xl font-semibold text-gray-900 mb-4">Frontend: Web-Based Chat Interface</h3>
+                <p class="text-gray-700 mb-4">
+                  The frontend will be a custom-built, lightweight component that can be easily embedded into any page of the
+                  <code class="bg-slate-100 px-2 py-1 rounded text-sm">invisiblebrowser.in</code> website. It will be developed using standard web technologies: HTML for structure, CSS for styling, and JavaScript for interactivity.
+                </p>
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-2">Key Features:</h4>
+                  <ul class="space-y-1 text-sm text-gray-700">
+                    <li>• Clean, intuitive, and responsive design</li>
+                    <li>• Asynchronous JavaScript (AJAX) calls</li>
+                    <li>• Real-time message display without page reload</li>
+                    <li>• Customizable styling to match existing branding</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <h3 class="serif-display text-2xl font-semibold text-gray-900 mb-4">Backend: Python Web Service</h3>
+                <p class="text-gray-700 mb-4">
+                  The backend will serve as the core of the chatbot system, acting as the central hub that orchestrates all interactions between the frontend, the AI engine, and the external communication services. <strong>FastAPI</strong> is recommended due to its high performance and native support for asynchronous operations.
+                </p>
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-2">Core Responsibilities:</h4>
+                  <ul class="space-y-1 text-sm text-gray-700">
+                    <li>• Authenticating and managing user sessions</li>
+                    <li>• Tracking message counts per session</li>
+                    <li>• Forwarding queries to AI engine</li>
+                    <li>• Triggering conditional forwarding logic</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-8">
+              <div>
+                <h3 class="serif-display text-2xl font-semibold text-gray-900 mb-4">AI Engine: DeepSeek R1-V2 with MinionAgent</h3>
+                <p class="text-gray-700 mb-4">
+                  The AI Engine is the brain of the chatbot, responsible for understanding user queries and generating intelligent, context-aware responses. This will be achieved by combining the power of the <strong>DeepSeek R1-V2</strong> large language model with the autonomous capabilities of the <strong>MinionAgent</strong> framework.
+                </p>
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-2">Key Capabilities:</h4>
+                  <ul class="space-y-1 text-sm text-gray-700">
+                    <li>• Real-time web scraping and data retrieval</li>
+                    <li>• Multilingual support (English, Chinese, etc.)</li>
+                    <li>• Context-aware response generation</li>
+                    <li>• Integration with external tools and services</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <h3 class="serif-display text-2xl font-semibold text-gray-900 mb-4">Communication Layer: WhatsApp/Telegram Integration</h3>
+                <p class="text-gray-700 mb-4">
+                  The communication layer enables conditional forwarding of chat logs to the business owner, facilitating direct engagement with potential leads. <strong>Telegram</strong> offers a far more developer-friendly and cost-effective solution for programmatic messaging.
+                </p>
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-2">Implementation Benefits:</h4>
+                  <ul class="space-y-1 text-sm text-gray-700">
+                    <li>• Free Telegram Bot API with excellent documentation</li>
+                    <li>• Simple setup process with BotFather</li>
+                    <li>• Reliable message delivery and formatting</li>
+                    <li>• No business verification or complex setup required</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Question Answering Implementation -->
+      <section id="question-answering" class="section-spacing bg-white">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">Core Implementation: Answering User Questions</h2>
+
+          <div class="prose prose-lg max-w-none mb-12">
+            <p class="text-xl text-gray-700 leading-relaxed">
+              The foundational capability of the proposed chatbot is its ability to intelligently answer user questions by synthesizing information from both the public web and the specific content of
+              <code class="bg-slate-100 px-2 py-1 rounded text-sm">invisiblebrowser.in</code>.
+            </p>
+          </div>
+
+          <!-- DeepSeek R1-V2 Section -->
+          <div class="mb-16">
+            <div class="grid lg:grid-cols-2 gap-12 items-start">
+              <div class="space-y-6">
+                <h3 class="serif-display text-3xl font-semibold text-gray-900">Recommended Free Model: DeepSeek R1-V2</h3>
+
+                <p class="text-gray-700">
+                  For an early-stage startup operating with limited capital, selecting a high-performance, cost-effective AI model is paramount. The recommended choice is <strong>DeepSeek R1-V2</strong>, an open-weight large language model developed by DeepSeek AI<a href="https://www.byteplus.com/en/topic/416706" class="citation-link">[131]</a>.
+                </p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-blue-900 mb-2">Why DeepSeek R1-V2?</h4>
+                  <ul class="space-y-2 text-blue-800">
+                    <li>• <strong>Free to use</strong> - No licensing fees or per-token charges</li>
+                    <li>• <strong>Strong reasoning capabilities</strong> - Excels at complex, multi-step tasks</li>
+                    <li>• <strong>Multilingual support</strong> - Native proficiency in English and Chinese</li>
+                    <li>• <strong>Efficient architecture</strong> - Lower hardware requirements</li>
+                  </ul>
+                </div>
+
+                <p class="text-gray-700">
+                  Unlike proprietary models from providers like OpenAI or Anthropic, which incur per-token costs that can quickly escalate with user traffic, DeepSeek&#39;s open-weight models can be run locally or on low-cost cloud infrastructure, eliminating variable API expenses<a href="https://www.byteplus.com/en/topic/416706" class="citation-link">[131]</a>.
+                </p>
+              </div>
+
+              <div class="bg-slate-50 p-8 rounded-lg border">
+                <img src="https://kimi-web-img.moonshot.cn/img/cdn-uploads.huggingface.co/9b356e456793d55a50d2ff1fece1029089d7fef1.png" alt="DeepSeek AI model logo" class="w-full rounded-lg mb-4" size="medium" aspect="square" color="black" style="transparent" query="DeepSeek AI logo" referrerpolicy="no-referrer" data-modified="1" data-score="0.00"/>
+                <div class="space-y-3">
+                  <h4 class="font-semibold text-gray-900">Model Specifications</h4>
+                  <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span class="text-gray-600">Type:</span>
+                      <span class="font-medium ml-2">Open-weight LLM</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-600">Cost:</span>
+                      <span class="font-medium ml-2 text-green-600">Free</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-600">Languages:</span>
+                      <span class="font-medium ml-2">English, Chinese +</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-600">Architecture:</span>
+                      <span class="font-medium ml-2">Efficient design</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MinionAgent Section -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Web Scraping with MinionAgent</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8 mb-8">
+              <div class="lg:col-span-2 space-y-6">
+                <p class="text-gray-700">
+                  To fulfill the requirement of answering questions based on both the public web and the
+                  <code class="bg-slate-100 px-2 py-1 rounded text-sm">invisiblebrowser.in</code> website, the chatbot needs a dynamic data retrieval mechanism. The recommended tool is <strong>MinionAgent</strong>, a powerful, open-source AI agent framework designed for browser automation and information retrieval<a href="https://blog.csdn.net/qq_41185868/article/details/148040189" class="citation-link">[133]</a>.
+                </p>
+
+                <div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-green-900 mb-2">Installation</h4>
+                  <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm mb-3">
+                    pip install minion-agent-x
+                  </div>
+                  <p class="text-green-800 text-sm">
+                    The MinionAgent framework is available as a Python package, making it easy to integrate into the existing backend codebase<a href="https://www.xugj520.cn/archives/open-source-ai-agent-framework.html" class="citation-link">[135]</a>.
+                  </p>
+                </div>
+
+                <p class="text-gray-700">
+                  MinionAgent acts as the &#34;hands&#34; of the LLM, allowing it to interact with the live web. When a user asks a question, the chatbot can instruct MinionAgent to navigate to relevant websites, search for information, and extract the necessary data.
+                </p>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Agent Configuration</h4>
+                  <div class="space-y-3 text-sm">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      <span>Model ID: deepseek-r1-v2</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                      <span>Browser Tool Integration</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                      <span>Planning Mechanism</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-teal-500 rounded-full"></span>
+                      <span>MCP Protocol Support</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                  <h5 class="font-semibold text-amber-900 mb-2">Key Benefits</h5>
+                  <ul class="space-y-1 text-sm text-amber-800">
+                    <li>• Autonomous web navigation</li>
+                    <li>• Adaptive to website layout changes</li>
+                    <li>• Real-time data retrieval</li>
+                    <li>• Context-aware information extraction</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Code Example -->
+            <div class="bg-gray-900 rounded-lg p-6 mb-8">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="text-white font-semibold">Integration Example</h4>
+                <span class="text-gray-400 text-sm">Python</span>
+              </div>
+              <pre class="text-green-400 text-sm overflow-x-auto"><code>import asyncio
+from minion_agent import MinionAgent, AgentConfig, AgentFramework
+from dotenv import load_dotenv
+
+load_dotenv()
+
+async def handle_user_query(user_query: str):
+    agent_config = AgentConfig(
+        model_id=&#34;deepseek-r1-v2&#34;,
+        name=&#34;web_researcher&#34;,
+        description=&#34;An agent that can browse the web to answer questions.&#34;,
+        tools=[&#34;minion_agent.tools.browser_tool.browser&#34;],
+    )
+    
+    agent = await MinionAgent.create(AgentFramework.SMOLAGENTS, agent_config)
+    scraped_data = await agent.run(user_query)
+    
+    # Pre-process scraped_data and create LLM prompt
+    prompt = f&#34;Based on the following information, answer &#39;{user_query}&#39;:\n\n{scraped_data}&#34;
+    
+    return llm_response
+
+# Called from chat API endpoint
+# asyncio.run(handle_user_query(&#34;What is the latest news about AI?&#34;))</code></pre>
+            </div>
+          </div>
+
+          <!-- Alternative Implementation: RAG -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Alternative Implementation: RAG with LlamaIndex</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <p class="text-gray-700">
+                  While the MinionAgent approach provides dynamic web scraping, an alternative architectural pattern known as <strong>Retrieval-Augmented Generation (RAG)</strong> offers different trade-offs. A RAG system pre-processes and indexes specific documents into a vector database for faster, more reliable answers.
+                </p>
+
+                <div class="bg-indigo-50 border-l-4 border-indigo-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-indigo-900 mb-2">RAG Pipeline Components</h4>
+                  <ul class="space-y-2 text-indigo-800">
+                    <li>• <strong>Ollama</strong> - Local LLM serving framework<a href="https://www.codewithfaraz.com/python/112/how-to-create-your-own-ai-chatbot-like-deepseek-with-ollama-in-python-flask" class="citation-link">[130]</a>
+                    </li>
+                    <li>• <strong>LlamaIndex</strong> - Data framework for RAG applications</li>
+                    <li>• <strong>Vector Database</strong> - Efficient similarity search</li>
+                    <li>• <strong>Document Processing</strong> - Website content indexing</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-gray-900 rounded-lg p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-white font-semibold">Ollama Setup</h4>
+                    <span class="text-gray-400 text-sm">Bash</span>
+                  </div>
+                  <pre class="text-green-400 text-sm"><code># Install and run DeepSeek model
+ollama run deepseek-r1:1.5b</code></pre>
+                </div>
+
+                <div class="bg-gray-900 rounded-lg p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-white font-semibold">RAG Implementation</h4>
+                    <span class="text-gray-400 text-sm">Python</span>
+                  </div>
+                  <pre class="text-green-400 text-sm"><code>from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
+from llama_index.llms.ollama import Ollama
+
+# Load and index documents
+documents = SimpleDirectoryReader(&#34;data/&#34;).load_data()
+index = VectorStoreIndex.from_documents(documents)
+
+# Create query engine
+llm = Ollama(model=&#34;deepseek-r1:1.5b&#34;)
+query_engine = index.as_query_engine(llm=llm)
+
+# Query the index
+response = query_engine.query(
+    &#34;What are the features of invisiblebrowser.in?&#34;
+)</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Conditional Forwarding -->
+      <section id="conditional-forwarding" class="section-spacing bg-slate-50">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">Implementation: Conditional Chat Forwarding</h2>
+
+          <div class="prose prose-lg max-w-none mb-12">
+            <p class="text-xl text-gray-700 leading-relaxed">
+              A key feature of the proposed chatbot is its ability to intelligently manage user interactions based on their engagement level and authentication status. After an unauthenticated user has engaged in four chat exchanges, the system will automatically forward the entire conversation log to the startup team via a messaging platform.
+            </p>
+          </div>
+
+          <!-- User Session Management -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">User Session and State Management</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <p class="text-gray-700">
+                  To implement the conditional forwarding feature, the backend must track the state of each user&#39;s interaction with the chatbot. This involves monitoring whether a user is logged in and counting the number of messages they have sent in a single session.
+                </p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-blue-900 mb-2">Session State Tracking</h4>
+                  <div class="space-y-3">
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-user-check text-blue-600 mt-1"></i>
+                      <div>
+                        <strong class="text-blue-900">User Login Status</strong>
+                        <p class="text-blue-800 text-sm mt-1">Check authentication token or session cookie</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-counter text-blue-600 mt-1"></i>
+                      <div>
+                        <strong class="text-blue-900">Message Counter</strong>
+                        <p class="text-blue-800 text-sm mt-1">Increment with each message from unauthenticated users</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-clock text-blue-600 mt-1"></i>
+                      <div>
+                        <strong class="text-blue-900">Session Timeout</strong>
+                        <p class="text-blue-800 text-sm mt-1">Reset counter on session expiration</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-slate-50 p-6 rounded-lg border">
+                <h4 class="font-semibold text-gray-900 mb-4">Technical Implementation</h4>
+                <div class="space-y-4">
+                  <div>
+                    <h5 class="font-medium text-gray-900 mb-2">Flask-Session Configuration</h5>
+                    <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                      # Configure session management
+                      <br/>
+                      app.config[&#39;SESSION_TYPE&#39;] = &#39;filesystem&#39;
+                      <br/>
+                      app.config[&#39;PERMANENT_SESSION_LIFETIME&#39;] = timedelta(minutes=30)
+                    </div>
+                  </div>
+
+                  <div>
+                    <h5 class="font-medium text-gray-900 mb-2">State Storage</h5>
+                    <div class="space-y-1 text-sm text-gray-700">
+                      <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                        <span>is_logged_in: Boolean</span>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                        <span>message_count: Integer</span>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                        <span>last_active: Timestamp</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Telegram Integration -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Telegram Integration (Recommended)</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+              <div class="lg:col-span-2 space-y-6">
+                <p class="text-gray-700">
+                  Telegram offers a far more developer-friendly and cost-effective solution for programmatic messaging. The Telegram Bot API is completely free to use, well-documented, and supported by a robust ecosystem of libraries.
+                </p>
+
+                <div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-green-900 mb-3">Bot Setup Process</h4>
+                  <ol class="space-y-2 text-green-800 text-sm">
+                    <li><strong>1.</strong> Start chat with <code>@BotFather</code> in Telegram</li>
+                    <li><strong>2.</strong> Send <code>/newbot</code> command and follow prompts</li>
+                    <li><strong>3.</strong> Receive unique HTTP API token</li>
+                    <li><strong>4.</strong> Create Telegram group for receiving logs</li>
+                    <li><strong>5.</strong> Add bot to group and get chat ID</li>
+                  </ol>
+                </div>
+
+                <div class="bg-gray-900 rounded-lg p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-white font-semibold">Installation</h4>
+                    <span class="text-gray-400 text-sm">Python</span>
+                  </div>
+                  <pre class="text-green-400 text-sm"><code>pip install python-telegram-bot</code></pre>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Configuration</h4>
+                  <div class="space-y-3 text-sm">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-teal-500 rounded-full"></span>
+                      <span>TELEGRAM_BOT_TOKEN</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      <span>TELEGRAM_CHAT_ID</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                      <span>Environment Variables</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-green-100 border border-green-300 p-4 rounded-lg">
+                  <h5 class="font-semibold text-green-900 mb-2">Advantages</h5>
+                  <ul class="space-y-1 text-sm text-green-800">
+                    <li>• Completely free API</li>
+                    <li>• No business verification</li>
+                    <li>• Excellent documentation</li>
+                    <li>• Reliable delivery</li>
+                    <li>• Easy setup process</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WhatsApp Alternative -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">WhatsApp Integration (Alternative)</h3>
+
+            <div class="bg-amber-50 border border-amber-200 p-6 rounded-lg">
+              <div class="flex items-start space-x-4">
+                <i class="fas fa-exclamation-triangle text-amber-600 text-xl mt-1"></i>
+                <div class="space-y-3">
+                  <h4 class="font-semibold text-amber-900">Important Considerations</h4>
+                  <p class="text-amber-800">
+                    While WhatsApp is the stated preference, integrating with WhatsApp&#39;s API is notoriously complex and often comes with significant costs. The official WhatsApp Business API is typically offered through Meta&#39;s Business Solution Providers (BSPs) with associated fees.
+                  </p>
+
+                  <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h5 class="font-medium text-amber-900 mb-2">Potential Issues:</h5>
+                      <ul class="space-y-1 text-sm text-amber-800">
+                        <li>• Account ban risk with unofficial libraries</li>
+                        <li>• Per-message fees and platform charges</li>
+                        <li>• Complex business verification process</li>
+                        <li>• Technical implementation challenges</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h5 class="font-medium text-amber-900 mb-2">Recommendation:</h5>
+                      <p class="text-sm text-amber-800">
+                        Implement Telegram integration first as the primary solution, then explore WhatsApp integration as a future enhancement if business needs justify the additional complexity and cost.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Multilingual Support -->
+      <section id="multilingual-support" class="section-spacing bg-white">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">Implementation: Multilingual Support</h2>
+
+          <div class="prose prose-lg max-w-none mb-12">
+            <p class="text-xl text-gray-700 leading-relaxed">
+              The chatbot system is designed to offer <strong>multilingual support</strong> out of the box, leveraging the inherent capabilities of the DeepSeek R1-V2 model to understand and respond to queries in multiple languages, which is crucial for reaching a global audience.
+            </p>
+          </div>
+
+          <!-- Model-Level Language Support -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Model-Level Language Support</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <p class="text-gray-700">
+                  The DeepSeek R1-V2 model provides robust multilingual support, which is a cornerstone of the chatbot&#39;s design. While its primary training data emphasizes <strong>English and Chinese</strong>, the model&#39;s architecture is inherently capable of handling a wide range of other languages.
+                </p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-blue-900 mb-3">Language Detection &amp; Switching</h4>
+                  <div class="space-y-3">
+                    <div>
+                      <strong class="text-blue-900">Manual Selection:</strong>
+                      <p class="text-blue-800 text-sm mt-1">User selects language via chat interface buttons or commands</p>
+                    </div>
+                    <div>
+                      <strong class="text-blue-900">Automatic Detection:</strong>
+                      <p class="text-blue-800 text-sm mt-1">Use language detection libraries or model&#39;s inherent capabilities</p>
+                    </div>
+                    <div>
+                      <strong class="text-blue-900">Model-Level Switching:</strong>
+                      <p class="text-blue-800 text-sm mt-1">Prompt model to identify input language and respond accordingly</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Supported Languages</h4>
+                  <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
+                      <span>English (Primary)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                      <span>Chinese (Primary)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                      <span>Spanish</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-purple-500 rounded-full"></span>
+                      <span>French</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-orange-500 rounded-full"></span>
+                      <span>German</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span class="w-3 h-3 bg-teal-500 rounded-full"></span>
+                      <span>Japanese</span>
+                    </div>
+                  </div>
+                  <p class="text-gray-600 text-xs mt-4 italic">*Model performance may vary for languages beyond English and Chinese</p>
+                </div>
+
+                <div class="bg-green-100 border border-green-300 p-4 rounded-lg">
+                  <h5 class="font-semibold text-green-900 mb-2">Future Enhancement</h5>
+                  <p class="text-sm text-green-800">
+                    The model&#39;s open-weight nature means it can be fine-tuned on custom datasets in specific languages to further enhance performance for the startup&#39;s unique use case and target markets.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- UI Internationalization -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">User Interface Internationalization (i18n)</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+              <div class="lg:col-span-2 space-y-6">
+                <p class="text-gray-700">
+                  To provide a truly global user experience, the chatbot&#39;s user interface (UI) must be as multilingual as its core AI engine. This involves implementing internationalization (i18n) using dedicated libraries to manage and display UI elements in the user&#39;s preferred language.
+                </p>
+
+                <div class="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-purple-900 mb-3">Flask-Babel Implementation</h4>
+                  <p class="text-purple-800 text-sm mb-3">
+                    For a Flask-based backend, Flask-Babel is the most widely adopted library for internationalization. It provides comprehensive tools for managing translations, formatting dates/numbers, and handling pluralization<a href="https://centus.com/blog/python-localization" class="citation-link">[101]</a>.
+                  </p>
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                    pip install flask-babel
+                  </div>
+                </div>
+
+                <p class="text-gray-700">
+                  The core principle involves replacing all hardcoded strings with special translation functions (typically
+                  <code class="bg-slate-100 px-2 py-1 rounded text-sm">_()</code>), which act as markers for strings that should be translated based on the user&#39;s selected locale.
+                </p>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Translation Workflow</h4>
+                  <div class="space-y-3 text-sm">
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs">1</span>
+                      <span>Mark strings with _()</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs">2</span>
+                      <span>Extract to .pot template</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs">3</span>
+                      <span>Create .po translation files</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs">4</span>
+                      <span>Compile to .mo binary files</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-teal-100 border border-teal-300 p-4 rounded-lg">
+                  <h5 class="font-semibold text-teal-900 mb-2">Directory Structure</h5>
+                  <div class="font-mono text-xs text-teal-800 space-y-1">
+                    <div>project/</div>
+                    <div class="ml-2">├── locales/</div>
+                    <div class="ml-4">│ ├── en/</div>
+                    <div class="ml-6">│ │ └── LC_MESSAGES/</div>
+                    <div class="ml-8">│ │ ├── messages.po</div>
+                    <div class="ml-8">│ │ └── messages.mo</div>
+                    <div class="ml-4">│ ├── fr/</div>
+                    <div class="ml-4">│ ├── de/</div>
+                    <div class="ml-4">│ └── zh/</div>
+                    <div class="ml-2">└── ...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Language Switching -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Dynamic Language Switching</h3>
+
+            <div class="bg-slate-50 p-8 rounded-lg border">
+              <div class="grid lg:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                  <p class="text-gray-700">
+                    A key feature of a well-implemented internationalized application is the ability to dynamically switch the UI language based on user preference. This can be achieved through multiple methods:
+                  </p>
+
+                  <div class="space-y-4">
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-link text-blue-500 mt-1"></i>
+                      <div>
+                        <strong class="text-gray-900">URL Parameters</strong>
+                        <p class="text-gray-600 text-sm mt-1">Use ?lang=fr in URL for immediate switching</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-database text-green-500 mt-1"></i>
+                      <div>
+                        <strong class="text-gray-900">Session Variables</strong>
+                        <p class="text-gray-600 text-sm mt-1">Store preference for duration of visit</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-user text-purple-500 mt-1"></i>
+                      <div>
+                        <strong class="text-gray-900">User Profile</strong>
+                        <p class="text-gray-600 text-sm mt-1">Persistent storage for logged-in users</p>
+                      </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                      <i class="fas fa-globe text-orange-500 mt-1"></i>
+                      <div>
+                        <strong class="text-gray-900">Browser Headers</strong>
+                        <p class="text-gray-600 text-sm mt-1">Auto-detect from Accept-Language header</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-gray-900 rounded-lg p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-white font-semibold">Implementation Example</h4>
+                    <span class="text-gray-400 text-sm">Python/Flask</span>
+                  </div>
+                  <pre class="text-green-400 text-sm"><code>@app.before_request
+def before_request():
+    # Check for language parameter
+    if &#39;lang&#39; in request.args:
+        session[&#39;lang&#39;] = request.args[&#39;lang&#39;]
+        babel.refresh()
+    
+    # Check session for language
+    lang = session.get(&#39;lang&#39;, None)
+    if lang:
+        g.lang = lang
+    else:
+        # Auto-detect from browser
+        g.lang = request.accept_languages.best_match([&#39;en&#39;, &#39;fr&#39;, &#39;de&#39;, &#39;zh&#39;])</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Backend Integration -->
+      <section id="backend-integration" class="section-spacing bg-slate-50">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">Backend Integration: Routes, Controllers, and Services</h2>
+
+          <div class="prose prose-lg max-w-none mb-12">
+            <p class="text-xl text-gray-700 leading-relaxed">
+              The backend will expose a clean and intuitive RESTful API to handle all chatbot-related operations. This section details the architectural organization of routes, controllers, and services that form the core business logic of the application.
+            </p>
+          </div>
+
+          <!-- API Route Design -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">API Route Design</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-semibold text-gray-900">POST /chat/message</h4>
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Primary Endpoint</span>
+                  </div>
+                  <p class="text-gray-600 text-sm mb-3">
+                    Core endpoint for receiving user messages. Frontend sends POST request with user message in JSON body.
+                  </p>
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                    { &#34;message&#34;: &#34;Hello! I have a question...&#34; }
+                  </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-semibold text-gray-900">GET /chat/history</h4>
+                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Secondary Endpoint</span>
+                  </div>
+                  <p class="text-gray-600 text-sm mb-3">
+                    Retrieves conversation history for current session. Returns JSON array of message objects.
+                  </p>
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                    [
+                    <br/>
+                      {&#34;sender&#34;: &#34;user&#34;, &#34;text&#34;: &#34;Hello!&#34;},
+                    <br/>
+                      {&#34;sender&#34;: &#34;bot&#34;, &#34;text&#34;: &#34;How can I help?&#34;}
+                    <br/>
+                    ]
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Request Flow</h4>
+                  <div class="space-y-3 text-sm">
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs">1</span>
+                      <span>Frontend sends user message</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs">2</span>
+                      <span>Controller validates request</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs">3</span>
+                      <span>ChatManager processes message</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs">4</span>
+                      <span>AIService generates response</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                      <span class="w-6 h-6 bg-teal-500 text-white rounded-full flex items-center justify-center text-xs">5</span>
+                      <span>Return response to frontend</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                  <h5 class="font-semibold text-amber-900 mb-2">Additional Endpoints</h5>
+                  <ul class="space-y-1 text-sm text-amber-800">
+                    <li>• <strong>GET /chat/status</strong> - Check session status</li>
+                    <li>• <strong>POST /chat/language</strong> - Set language preference</li>
+                    <li>• <strong>GET /health</strong> - Service health check</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controller Layer -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Controller Layer (ChatController)</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+              <div class="lg:col-span-2 space-y-6">
+                <p class="text-gray-700">
+                  The controller layer acts as the intermediary between the API routes and the service layer. It handles incoming HTTP requests, validates request data, calls appropriate service methods, and formats responses to be sent back to the frontend.
+                </p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-blue-900 mb-3">Controller Responsibilities</h4>
+                  <div class="space-y-2 text-blue-800 text-sm">
+                    <div class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-blue-600"></i>
+                      <span>Handle incoming HTTP requests</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <i class="fas fa-shield-alt text-blue-600"></i>
+                      <span>Validate request data and parameters</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <i class="fas fa-cogs text-blue-600"></i>
+                      <span>Orchestrate service method calls</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <i class="fas fa-reply text-blue-600"></i>
+                      <span>Format and return HTTP responses</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <i class="fas fa-exclamation-triangle text-blue-600"></i>
+                      <span>Handle errors and exceptions</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-gray-900 rounded-lg p-6">
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-white font-semibold">ChatController Example</h4>
+                    <span class="text-gray-400 text-sm">Python</span>
+                  </div>
+                  <pre class="text-green-400 text-sm"><code>class ChatController:
+    def __init__(self, chat_manager):
+        self.chat_manager = chat_manager
+    
+    def send_message(self, request_data):
+        &#34;&#34;&#34;Handle incoming chat message&#34;&#34;&#34;
+        try:
+            # Validate request
+            message = request_data.get(&#39;message&#39;)
+            if not message:
+                return error_response(&#34;Message required&#34;, 400)
+            
+            # Process through chat manager
+            response = self.chat_manager.process_message(message)
+            
+            return success_response(response)
+            
+        except Exception as e:
+            return error_response(str(e), 500)
+    
+    def get_history(self, session_id):
+        &#34;&#34;&#34;Retrieve chat history&#34;&#34;&#34;
+        try:
+            history = self.chat_manager.get_session_history(session_id)
+            return success_response(history)
+        except Exception as e:
+            return error_response(str(e), 500)</code></pre>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Separation of Concerns</h4>
+                  <div class="space-y-3 text-sm">
+                    <div>
+                      <strong class="text-gray-900">Controller:</strong>
+                      <p class="text-gray-600">Handles &#34;what&#34; needs to be done</p>
+                    </div>
+                    <div>
+                      <strong class="text-gray-900">Service:</strong>
+                      <p class="text-gray-600">Handles &#34;how&#34; to do it</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-purple-100 border border-purple-300 p-4 rounded-lg">
+                  <h5 class="font-semibold text-purple-900 mb-2">Benefits</h5>
+                  <ul class="space-y-1 text-sm text-purple-800">
+                    <li>• Clean, maintainable code</li>
+                    <li>• Easy to test business logic</li>
+                    <li>• Modular architecture</li>
+                    <li>• Reduced code duplication</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Service Layer -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Service Layer</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8 mb-8">
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-comments text-2xl text-blue-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">ChatManager</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  Core chat logic and state management. Processes messages, tracks session state, and triggers forwarding logic.
+                </p>
+                <div class="space-y-2 text-xs">
+                  <div class="bg-blue-50 px-2 py-1 rounded">process_message()</div>
+                  <div class="bg-blue-50 px-2 py-1 rounded">get_session_history()</div>
+                  <div class="bg-blue-50 px-2 py-1 rounded">check_forwarding_conditions()</div>
+                </div>
+              </div>
+
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-brain text-2xl text-purple-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">AIService</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  Interfaces with MinionAgent/DeepSeek. Handles AI processing, web scraping, and response generation.
+                </p>
+                <div class="space-y-2 text-xs">
+                  <div class="bg-purple-50 px-2 py-1 rounded">generate_response()</div>
+                  <div class="bg-purple-50 px-2 py-1 rounded">scrape_web_data()</div>
+                  <div class="bg-purple-50 px-2 py-1 rounded">process_with_llm()</div>
+                </div>
+              </div>
+
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-paper-plane text-2xl text-teal-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">MessageForwarder</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  Handles WhatsApp/Telegram notifications. Formats and sends chat logs when forwarding conditions are met.
+                </p>
+                <div class="space-y-2 text-xs">
+                  <div class="bg-teal-50 px-2 py-1 rounded">send_telegram_notification()</div>
+                  <div class="bg-teal-50 px-2 py-1 rounded">format_chat_log()</div>
+                  <div class="bg-teal-50 px-2 py-1 rounded">handle_forwarding_trigger()</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Service Interactions -->
+            <div class="bg-slate-50 p-8 rounded-lg border">
+              <h4 class="font-semibold text-gray-900 mb-6">Service Interaction Flow</h4>
+              <div class="grid lg:grid-cols-4 gap-6">
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-comments text-xl"></i>
+                  </div>
+                  <h5 class="font-medium text-gray-900 mb-2">1. ChatManager</h5>
+                  <p class="text-gray-600 text-sm">Receives message, checks session state, decides processing path</p>
+                </div>
+
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-purple-500 text-white rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-arrow-right text-xl"></i>
+                  </div>
+                  <h5 class="font-medium text-gray-900 mb-2">2. AIService</h5>
+                  <p class="text-gray-600 text-sm">If normal processing, sends to AI for response generation</p>
+                </div>
+
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-teal-500 text-white rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-arrow-right text-xl"></i>
+                  </div>
+                  <h5 class="font-medium text-gray-900 mb-2">3. MessageForwarder</h5>
+                  <p class="text-gray-600 text-sm">If forwarding conditions met, triggers notification</p>
+                </div>
+
+                <div class="text-center">
+                  <div class="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-check text-xl"></i>
+                  </div>
+                  <h5 class="font-medium text-gray-900 mb-2">4. Response</h5>
+                  <p class="text-gray-600 text-sm">Returns AI response to user via controller</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Utilities and Configuration -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Utilities and Configuration</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-key text-2xl text-yellow-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">Configuration Management</h4>
+                  </div>
+                  <p class="text-gray-600 text-sm mb-4">
+                    Secure management of API keys and sensitive configuration using environment variables and python-dotenv.
+                  </p>
+
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs mb-3">
+                    pip install python-dotenv
+                  </div>
+
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                    # .env file
+                    <br/>
+                    TELEGRAM_BOT_TOKEN=your_token_here
+                    <br/>
+                    TELEGRAM_CHAT_ID=your_chat_id
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-bug text-2xl text-red-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">Centralized Logging</h4>
+                  </div>
+                  <p class="text-gray-600 text-sm mb-4">
+                    Python&#39;s built-in logging module for debugging and monitoring with different log levels and flexible configuration.
+                  </p>
+
+                  <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                    import logging
+                    <br/>
+                    logger = logging.getLogger(__name__)
+                    <br/>
+                    logger.info(&#34;Message processed successfully&#34;)
+                    <br/>
+                    logger.error(&#34;Error processing message&#34;, exc_info=True)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Deployment and Next Steps -->
+      <section id="deployment" class="section-spacing bg-white">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <h2 class="serif-display text-4xl font-bold text-gray-900 mb-12">Deployment and Next Steps</h2>
+
+          <!-- Local Development Setup -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Local Development Setup</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <p class="text-gray-700">
+                  To get started with development, follow these steps to set up a local environment. This setup ensures isolation of dependencies and proper configuration for development and testing.
+                </p>
+
+                <div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
+                  <h4 class="font-semibold text-green-900 mb-3">Setup Steps</h4>
+                  <ol class="space-y-2 text-green-800 text-sm">
+                    <li><strong>1.</strong> Create virtual environment:
+                      <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">python -m venv venv</code>
+                    </li>
+                    <li><strong>2.</strong> Activate environment:
+                      <br/>
+                      <span class="ml-4">• Windows:
+                        <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">venv\Scripts\activate</code>
+                      </span>
+                      <br/>
+                      <span class="ml-4">• macOS/Linux:
+                        <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">source venv/bin/activate</code>
+                      </span>
+                    </li>
+                    <li><strong>3.</strong> Install dependencies:
+                      <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">pip install -r requirements.txt</code>
+                    </li>
+                    <li><strong>4.</strong> Create
+                      <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">.env</code> file with configuration
+                    </li>
+                    <li><strong>5.</strong> Run development server:
+                      <code class="bg-gray-800 text-green-400 px-2 py-1 rounded">python app.py</code>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-slate-50 p-6 rounded-lg border">
+                  <h4 class="font-semibold text-gray-900 mb-4">Requirements.txt</h4>
+                  <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs">
+                    fastapi==0.95.2
+                    <br/>
+                    uvicorn==0.22.0
+                    <br/>
+                    minion-agent-x==1.0.0
+                    <br/>
+                    python-telegram-bot==20.4
+                    <br/>
+                    python-dotenv==1.0.0
+                    <br/>
+                    flask-babel==3.1.0
+                    <br/>
+                    requests==2.31.0
+                    <br/>
+                    beautifulsoup4==4.12.2
+                  </div>
+                </div>
+
+                <div class="bg-blue-100 border border-blue-300 p-4 rounded-lg">
+                  <h5 class="font-semibold text-blue-900 mb-2">Development Tools</h5>
+                  <ul class="space-y-1 text-sm text-blue-800">
+                    <li>• VS Code with Python extensions</li>
+                    <li>• Postman for API testing</li>
+                    <li>• ngrok for local tunneling</li>
+                    <li>• Docker for containerization</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Deployment Considerations -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Deployment Considerations for a Startup</h3>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-cube text-2xl text-blue-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">Docker Container</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  Containerize the application for easy deployment and consistent environment across development and production.
+                </p>
+                <div class="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
+                  FROM python:3.11-slim
+                  <br/>
+                  COPY . /app
+                  <br/>
+                  RUN pip install -r requirements.txt
+                  <br/>
+                  CMD [&#34;uvicorn&#34;, &#34;app:app&#34;, &#34;--host&#34;, &#34;0.0.0.0&#34;]
+                </div>
+              </div>
+
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-server text-2xl text-green-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">VPS Deployment</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  Deploy to low-cost VPS providers like DigitalOcean, Linode, or Vultr for cost-effective hosting.
+                </p>
+                <div class="space-y-2 text-sm text-gray-700">
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span>$5-10/month plans sufficient</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <span>Easy scaling options</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                    <span>Full control over environment</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white p-6 rounded-lg border shadow-sm">
+                <div class="flex items-center mb-4">
+                  <i class="fas fa-cloud text-2xl text-purple-500 mr-3"></i>
+                  <h4 class="font-semibold text-gray-900">Managed Services</h4>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">
+                  For more scalable solutions, consider managed container services that auto-scale based on demand.
+                </p>
+                <div class="space-y-2 text-sm text-gray-700">
+                  <div>• AWS Fargate</div>
+                  <div>• Google Cloud Run</div>
+                  <div>• Azure Container Instances</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Future Enhancements -->
+          <div class="mb-16">
+            <h3 class="serif-display text-3xl font-semibold text-gray-900 mb-8">Future Enhancements and Scalability</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-brain text-2xl text-purple-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">AI Model Enhancement</h4>
+                  </div>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li>• Fine-tune DeepSeek on custom datasets</li>
+                    <li>• Add domain-specific knowledge</li>
+                    <li>• Implement response rating system</li>
+                    <li>• Continuous learning from user feedback</li>
+                  </ul>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-tools text-2xl text-blue-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">Agent Capabilities</h4>
+                  </div>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li>• Add calculator and calendar tools</li>
+                    <li>• CRM system integration</li>
+                    <li>• Database query capabilities</li>
+                    <li>• External API integrations</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="space-y-6">
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-expand-arrows-alt text-2xl text-green-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">Infrastructure Scaling</h4>
+                  </div>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li>• Horizontal scaling with load balancers</li>
+                    <li>• Dedicated AI processing servers</li>
+                    <li>• Cloud function deployment</li>
+                    <li>• Multi-region deployment</li>
+                  </ul>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg border shadow-sm">
+                  <div class="flex items-center mb-4">
+                    <i class="fas fa-chart-line text-2xl text-orange-500 mr-3"></i>
+                    <h4 class="font-semibold text-gray-900">Analytics &amp; Monitoring</h4>
+                  </div>
+                  <ul class="space-y-2 text-sm text-gray-700">
+                    <li>• User interaction analytics</li>
+                    <li>• Performance monitoring</li>
+                    <li>• Conversation flow optimization</li>
+                    <li>• A/B testing capabilities</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Final Recommendations -->
+          <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-lg border">
+            <h3 class="serif-display text-2xl font-semibold text-gray-900 mb-6">Implementation Roadmap</h3>
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div class="space-y-4">
+                <h4 class="font-semibold text-gray-900">Phase 1: Core Implementation</h4>
+                <ul class="space-y-2 text-sm text-gray-700">
+                  <li>• Set up FastAPI backend framework</li>
+                  <li>• Implement Telegram notification system</li>
+                  <li>• Integrate DeepSeek R1-V2 with MinionAgent</li>
+                  <li>• Build basic chat interface</li>
+                  <li>• Test conditional forwarding logic</li>
+                </ul>
+              </div>
+              <div class="space-y-4">
+                <h4 class="font-semibold text-gray-900">Phase 2: Enhancement &amp; Deployment</h4>
+                <ul class="space-y-2 text-sm text-gray-700">
+                  <li>• Add multilingual support with Flask-Babel</li>
+                  <li>• Implement comprehensive logging</li>
+                  <li>• Containerize with Docker</li>
+                  <li>• Deploy to production environment</li>
+                  <li>• Monitor and optimize performance</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="mt-6 p-4 bg-white rounded-lg border">
+              <p class="text-gray-700 text-sm">
+                <strong>Recommendation:</strong> Start with Telegram integration as the primary messaging platform due to its free, reliable, and developer-friendly API. This allows immediate implementation of the conditional forwarding feature without budget constraints. WhatsApp integration can be explored as a future enhancement if business needs justify the additional complexity and potential costs.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-8 max-w-6xl">
+          <div class="text-center">
+            <h3 class="serif-display text-2xl font-semibold mb-4">Ready to Implement?</h3>
+            <p class="text-gray-300 mb-6">
+              This comprehensive implementation plan provides everything needed to build a sophisticated, cost-effective chatbot for invisiblebrowser.in. Start with the core features and gradually enhance based on user feedback and business needs.
+            </p>
+            <div class="flex justify-center space-x-4">
+              <span class="tech-badge bg-gray-800 text-white">DeepSeek R1-V2</span>
+              <span class="tech-badge bg-gray-800 text-white">MinionAgent</span>
+              <span class="tech-badge bg-gray-800 text-white">FastAPI</span>
+              <span class="tech-badge bg-gray-800 text-white">Telegram API</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+        // Mobile TOC Toggle
+        document.getElementById('tocToggle').addEventListener('click', function() {
+            const tocNav = document.getElementById('tocNav');
+            tocNav.classList.toggle('open');
+            // Close TOC when clicking outside
+            if (tocNav.classList.contains('open')) {
+                document.addEventListener('click', closeTOCOnClickOutside);
+            }
+        });
+
+        // Close TOC when clicking outside
+        function closeTOCOnClickOutside(event) {
+            const tocNav = document.getElementById('tocNav');
+            const tocToggle = document.getElementById('tocToggle');
+            if (!tocNav.contains(event.target) && event.target !== tocToggle) {
+                tocNav.classList.remove('open');
+                document.removeEventListener('click', closeTOCOnClickOutside);
+            }
+        }
+
+        // Smooth scrolling for TOC links
+        document.querySelectorAll('#tocNav a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // Close mobile TOC
+                    document.getElementById('tocNav').classList.remove('open');
+                }
+            });
+        });
+
+        // Highlight active TOC item on scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('#tocNav a[href^="#"]');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (window.pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('text-blue-600', 'font-semibold');
+                link.classList.add('text-gray-600');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.remove('text-gray-600');
+                    link.classList.add('text-blue-600', 'font-semibold');
+                }
+            });
+        });
+    </script>
+  
+
+</body></html>
